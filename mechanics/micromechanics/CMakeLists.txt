@@ -5,7 +5,7 @@ add_library(mechanics.micromechanics_internal_iface INTERFACE)
 file(GLOB PUBLIC_INC "include/micromechanics/*.h")
 target_sources(
   mechanics.micromechanics
-  PRIVATE src/environment.cpp
+  PRIVATE src/cell.cpp src/cell_data.cpp src/environment.cpp
   PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include" FILES
          ${PUBLIC_INC})
 
