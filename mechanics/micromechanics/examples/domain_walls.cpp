@@ -11,6 +11,7 @@
 //
 // Usage: mechanics.micromechanics.domain_walls force|stall [migration_speed]
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdlib>
