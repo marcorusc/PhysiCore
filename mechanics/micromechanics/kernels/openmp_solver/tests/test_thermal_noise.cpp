@@ -1,3 +1,4 @@
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <vector>
@@ -228,6 +229,69 @@ TEST(ThermalNoiseTest, ImmovableCellIsNotShakenByNoise)
 	EXPECT_DOUBLE_EQ(element->position()[0], 1.0);
 	EXPECT_DOUBLE_EQ(element->position()[1], 2.0);
 	EXPECT_DOUBLE_EQ(element->position()[2], 3.0);
+}
+
+TEST(ThermalNoiseTest, CellDiffusesMoreSlowlyThanItsElementsAndStaysIntact)
+{
+	// The forces inside a cell cancel in their sum, so the centre of a cell of N elements moves only
+	// by the average of N independent noise terms: it diffuses with D / N. Many cells are followed
+	// to measure that. Each is the origin and its twelve nearest neighbours, far from all others.
+	const index_t cells_count = 200;
+	const index_t elements_per_cell = 13;
+	const real_t timestep = 0.002;
+	const index_t steps = 200;
+
+	environment env = make_environment(3, timestep);
+	// thermal energy D * drag = 0.05 u0: strong enough to shake the cells, too weak to break bonds
+	env.params.diffusion_coefficient = 0.05;
+	env.params.random_seed = 7;
+
+	for (index_t c = 0; c < cells_count; ++c)
+	{
+		const std::array<real_t, 3> centre = { 10.0 * static_cast<real_t>(c), 0.0, 0.0 };
+		env.create_cell(centre, elements_per_cell);
+	}
+
+	openmp_solver solver;
+	solver.initialize(env);
+	solver.solve(env, steps);
+
+	real_t mean_squared_displacement = 0.0;
+	for (index_t c = 0; c < cells_count; ++c)
+	{
+		auto* cell = env.cells->get_agent_at(c);
+		ASSERT_EQ(cell->agent_count(), elements_per_cell);
+
+		const std::array<real_t, 3> start = { 10.0 * static_cast<real_t>(c), 0.0, 0.0 };
+		for (std::size_t d = 0; d < 3; ++d)
+		{
+			mean_squared_displacement +=
+				std::pow(cell->position()[d] - start.at(d), 2) / static_cast<real_t>(cells_count);
+		}
+	}
+
+	const real_t end_time = timestep * static_cast<real_t>(steps);
+	const real_t expected =
+		2.0 * 3.0 * env.params.diffusion_coefficient / static_cast<real_t>(elements_per_cell) * end_time;
+
+	// 200 cells in 3D: relative standard error sqrt(2 / 600) = 6%. A longer run with 400 cells and
+	// 500 steps measured 1.04 times the expected value.
+	EXPECT_NEAR(mean_squared_displacement, expected, 0.2 * expected);
+
+	// every element is still within reach of its cell: at creation the furthest is one equilibrium
+	// distance from the centre
+	for (index_t i = 0; i < env.agents->size(); ++i)
+	{
+		auto* element = env.agents->get_agent_at(i);
+		auto* cell = env.cells->get_agent_at(element->cell_index());
+
+		real_t squared = 0.0;
+		for (std::size_t d = 0; d < 3; ++d)
+		{
+			squared += std::pow(element->position()[d] - cell->position()[d], 2);
+		}
+		ASSERT_LT(std::sqrt(squared), 1.6) << "element " << i;
+	}
 }
 
 #ifdef _OPENMP
