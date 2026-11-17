@@ -31,7 +31,9 @@ public:
 
 	void serialize_state(real_t current_time) override;
 
-	// Creates a cell without sub-agents; its index is cells->size() - 1 until a cell is removed
+	// Creates a cell without sub-agents; its index is cells->size() - 1 until a cell is removed.
+	// Its sub-agent radius is half the current equilibrium distance, so sub-agents drawn as
+	// spheres touch at equilibrium. Set params before creating cells.
 	cell_interface* create_cell();
 
 	// Creates a sub-agent that belongs to the cell at cell_index

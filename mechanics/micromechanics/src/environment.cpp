@@ -35,7 +35,12 @@ void environment::serialize_state(real_t current_time)
 	}
 }
 
-cell_interface* environment::create_cell() { return cells->create(); }
+cell_interface* environment::create_cell()
+{
+	auto* new_cell = cells->create();
+	new_cell->agent_radius() = 0.5 * params.equilibrium_distance;
+	return new_cell;
+}
 
 agent_interface* environment::create_agent(index_t cell_index)
 {

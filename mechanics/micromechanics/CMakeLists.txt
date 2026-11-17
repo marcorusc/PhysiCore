@@ -9,6 +9,7 @@ target_sources(
           src/agent_data.cpp
           src/cell.cpp
           src/cell_data.cpp
+          src/cell_parameters.cpp
           src/environment.cpp
           src/solver_registry.cpp
           src/vtk_agents_serializer.cpp

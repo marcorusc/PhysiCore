@@ -109,6 +109,18 @@ TEST(EnvironmentTest, CreateAgentAssignsCellAndCountsIt)
 	EXPECT_EQ(env.agents->size(), 3U);
 }
 
+TEST(EnvironmentTest, NewCellsTakeTheirSubAgentRadiusFromTheEquilibriumDistance)
+{
+	environment env = make_environment();
+
+	EXPECT_DOUBLE_EQ(env.create_cell()->agent_radius(), 0.5);
+
+	env.params.equilibrium_distance = 2.85;
+	EXPECT_DOUBLE_EQ(env.create_cell()->agent_radius(), 1.425);
+	// cells that already exist keep their value
+	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(0)->agent_radius(), 0.5);
+}
+
 TEST(EnvironmentTest, RemoveAgentUpdatesCellCount)
 {
 	environment env = make_environment();
