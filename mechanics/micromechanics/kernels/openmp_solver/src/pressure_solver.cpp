@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <numbers>
 
+#include <micromechanics/cell_type.h>
 #include <micromechanics/domain_wall.h>
 #include <micromechanics/pair_potential.h>
 
+#include "element_types.h"
 #include "parallel_threshold.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
@@ -17,8 +19,10 @@ struct outside_forces
 	const real_t* positions;
 	const index_t* cell_indices;
 	const real_t* cell_positions;
+	const index_t* type_indices;
+	index_t cells_count;
 	index_t dims;
-	pair_potential inter;
+	const interaction_table* table;
 
 	// (x_i - X_c) . F_ij for sub-agent i of cell c and a sub-agent j that is not in that cell
 	real_t virial(index_t i, index_t j) const
@@ -35,7 +39,9 @@ struct outside_forces
 		}
 
 		// the force on i is force_coefficient * (x_i - x_j)
-		return force_coefficient(inter, squared_distance) * projection;
+		const pair_interaction& interaction =
+			table->inter(type_indices[c], type_of_element(cell_indices[j], type_indices, cells_count));
+		return force_coefficient(interaction, squared_distance) * projection;
 	}
 };
 
@@ -62,13 +68,16 @@ void pressure_solver::update(environment& e)
 	const index_t agents_count = agents.agents_count;
 	const index_t dims = agents.base_data.dims;
 
+	const interaction_table table(e.cell_types, e.params);
 	const outside_forces pairs { .positions = agents.base_data.positions.data(),
 								 .cell_indices = agents.cell_indices.data(),
 								 .cell_positions = cells.positions.data(),
+								 .type_indices = cells.type_indices.data(),
+								 .cells_count = cells.cells_count,
 								 .dims = dims,
-								 .inter = e.params.inter_potential() };
+								 .table = &table };
 
-	grid_.build(pairs.positions, agents_count, dims, pairs.inter.cutoff_distance);
+	grid_.build(pairs.positions, agents_count, dims, table.largest_cutoff());
 
 	virials_.resize(agents_count);
 	real_t* virials = virials_.data();
@@ -104,11 +113,14 @@ void pressure_solver::update_brute_force(environment& e)
 
 	const index_t agents_count = agents.agents_count;
 
+	const interaction_table table(e.cell_types, e.params);
 	const outside_forces pairs { .positions = agents.base_data.positions.data(),
 								 .cell_indices = agents.cell_indices.data(),
 								 .cell_positions = cells.positions.data(),
+								 .type_indices = cells.type_indices.data(),
+								 .cells_count = cells.cells_count,
 								 .dims = agents.base_data.dims,
-								 .inter = e.params.inter_potential() };
+								 .table = &table };
 
 	virials_.assign(agents_count, 0.0);
 
@@ -142,7 +154,6 @@ void pressure_solver::add_walls(environment& e)
 	const cell_data& cells = generic_agent_solver<cell>::retrieve_agent_data(*e.cells);
 
 	const index_t dims = agents.base_data.dims;
-	const pair_potential wall = e.params.wall_potential();
 	const cartesian_mesh& mesh = e.mesh;
 
 	for (index_t i = 0; i < agents.agents_count; ++i)
@@ -152,6 +163,7 @@ void pressure_solver::add_walls(environment& e)
 		{
 			continue;
 		}
+		const pair_potential wall = wall_potential(e.cell_types[cells.type_indices[c]], e.params);
 		for (index_t d = 0; d < dims; ++d)
 		{
 			const real_t position = agents.base_data.positions[i * dims + d];
@@ -186,15 +198,14 @@ void pressure_solver::accumulate(environment& e)
 		}
 	}
 
-	const real_t element_volume = volume_per_element(dims, e.params.equilibrium_distance);
-
 	for (index_t c = 0; c < cells_count; ++c)
 	{
 		if (counts[c] == 0)
 		{
 			continue;
 		}
-		const real_t volume = static_cast<real_t>(counts[c]) * element_volume;
+		const real_t volume = static_cast<real_t>(counts[c])
+							  * volume_per_element(dims, e.cell_types[cells.type_indices[c]].equilibrium_distance);
 		cells.pressures[c] = -cells.pressures[c] / (static_cast<real_t>(dims) * volume);
 	}
 }

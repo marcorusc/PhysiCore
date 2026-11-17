@@ -158,7 +158,7 @@ TEST(CellPlacementTest, RejectsInvalidArguments)
 TEST(CellPlacementTest, EnvironmentCreatesAPackedCellAroundACentre)
 {
 	environment env({ 3, { -100, -100, -100 }, { 100, 100, 100 }, { 20, 20, 20 } }, 0.1);
-	env.params.equilibrium_distance = 2.0;
+	env.cell_types[0].equilibrium_distance = 2.0;
 	const std::array<real_t, 3> centre = { 5.0, -3.0, 1.0 };
 
 	env.create_cell();

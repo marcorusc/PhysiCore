@@ -14,6 +14,7 @@ namespace physicore::mechanics::micromechanics {
  * with their times. Each sub-agent is one point carrying:
  *
  * - cell_index: index of its cell, -1 if it has none (color by this to tell cells apart)
+ * - cell_type: index of the type of its cell, -1 if it has no cell
  * - velocity: three components, padded with zeros below three dimensions
  */
 serializer_ptr make_vtk_agents_serializer(std::string_view output_dir);

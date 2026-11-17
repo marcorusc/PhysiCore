@@ -15,13 +15,13 @@ namespace physicore::mechanics::micromechanics::kernels::openmp_solver::tests {
 TEST(OpenMPSolverTest, SingleStepIsForwardEuler)
 {
 	environment env = make_environment(3, 0.01);
-	env.params.drag_coefficient = 2.0;
+	env.cell_types[0].drag_coefficient = 2.0;
 	env.create_cell();
 	auto* left = add_agent(env, 0, { 0.0, 0.0, 0.0 });
 	auto* right = add_agent(env, 0, { 0.8, 0.0, 0.0 });
 
 	// repulsive: the pair is closer than the equilibrium distance of 1
-	const real_t force_on_right = 0.8 * force_coefficient(env.params.intra_potential(), 0.8 * 0.8);
+	const real_t force_on_right = 0.8 * force_coefficient(intra_potential(env.cell_types[0], env.params), 0.8 * 0.8);
 	ASSERT_GT(force_on_right, 0.0);
 
 	openmp_solver solver;
@@ -77,7 +77,7 @@ TEST_P(PairRelaxationTest, PairRelaxesToTheEquilibriumDistance)
 	openmp_solver solver;
 	solver.solve(env, 4000);
 
-	EXPECT_NEAR(std::sqrt(squared_distance(env, 0, 1)), env.params.equilibrium_distance, 1e-10);
+	EXPECT_NEAR(std::sqrt(squared_distance(env, 0, 1)), env.cell_types[0].equilibrium_distance, 1e-10);
 
 	const auto final_centre = centre_of_mass(env);
 	for (std::size_t d = 0; d < 3; ++d)

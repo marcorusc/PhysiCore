@@ -12,9 +12,10 @@ namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
  * @brief Position update of the overdamped Langevin equation (Euler-Maruyama scheme).
  *
  *     velocity = force / drag_coefficient + migration_speed * motility_direction
- *     position += velocity * timestep + sqrt(2 * diffusion_coefficient * timestep) * xi
+ *     position += velocity * timestep + sqrt(2 * thermal_energy / drag_coefficient * timestep) * xi
  *
- * with xi an independent standard normal number for every sub-agent, axis and step
+ * with drag_coefficient that of the sub-agent's cell type, and
+ * xi an independent standard normal number for every sub-agent, axis and step
  * (Sandersius and Newman 2008, Eq. 1 and 2). Without noise this is forward Euler. velocity is the
  * deterministic drift only; the noise has no finite velocity.
  *

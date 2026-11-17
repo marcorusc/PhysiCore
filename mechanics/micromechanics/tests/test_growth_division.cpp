@@ -90,7 +90,7 @@ TEST_P(GrowthTest, NewSubAgentJoinsTheCellOneEquilibriumDistanceFromAMember)
 {
 	const index_t dims = GetParam();
 	environment env = make_environment(dims);
-	env.params.equilibrium_distance = 2.0;
+	env.cell_types[0].equilibrium_distance = 2.0;
 	const std::vector<real_t> centre(dims, 5.0);
 	auto* cell = env.create_cell(centre, 13);
 

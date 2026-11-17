@@ -24,8 +24,8 @@ namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
  * that it is pulled outwards, as by adhesion to a neighbour that is being moved away.
  *
  * V_c is the nominal volume of the cell: its number of sub-agents times the volume one sub-agent takes
- * in a close packing at the equilibrium distance r_eq, which is r_eq^3 / sqrt(2) in three dimensions,
- * sqrt(3) / 2 * r_eq^2 in two and r_eq in one. For a cell made with scale_to_elements() and the default
+ * in a close packing at the equilibrium distance r_eq of the cell's type, which is r_eq^3 / sqrt(2) in three
+ * dimensions, sqrt(3) / 2 * r_eq^2 in two and r_eq in one. For a cell made with scale_to_elements() and the default
  * packing density this is the volume of the sphere of the requested radius.
  *
  * Only forces from outside the cell count: from sub-agents of other cells, from sub-agents without a

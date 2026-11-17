@@ -10,6 +10,7 @@
 
 #include "agent_container.h"
 #include "cell_container.h"
+#include "cell_type.h"
 #include "serializer.h"
 #include "simulation_parameters.h"
 #include "solver.h"
@@ -34,21 +35,34 @@ public:
 
 	void serialize_state(real_t current_time) override;
 
-	// Creates a cell without sub-agents; its index is cells->size() - 1 until a cell is removed.
-	cell_interface* create_cell();
+	// Adds a cell type and returns its index. There is always the type 0, which starts with the
+	// default values of cell_type and can be changed in place (cell_types[0]).
+	index_t add_cell_type(cell_type type);
 
-	// Creates a cell of elements_count sub-agents packed around centre without overlaps, one
-	// equilibrium distance apart (see packed_ball_positions). centre holds one value per dimension.
+	// Creates a cell of the given type without sub-agents; its index is cells->size() - 1 until a
+	// cell is removed. The cell takes the motility of its type.
+	// @throws std::out_of_range if there is no such type
+	cell_interface* create_cell(index_t type_index = 0);
+
+	// Creates a cell of type 0 of elements_count sub-agents packed around centre without overlaps,
+	// one equilibrium distance of the type apart (see packed_ball_positions). centre holds one value
+	// per dimension.
 	cell_interface* create_cell(std::span<const real_t> centre, index_t elements_count);
+
+	// The same for a cell of the given type, with the number of sub-agents of that type
+	// (cell_type::elements_per_cell)
+	cell_interface* create_cell_of_type(index_t type_index, std::span<const real_t> centre);
+
+	// The same with a number of sub-agents of one's own choosing
+	cell_interface* create_cell_of_type(index_t type_index, std::span<const real_t> centre, index_t elements_count);
 
 	/**
 	 * @brief Grows the cell at cell_index by one sub-agent.
 	 *
-	 * Candidate positions are tried, each one equilibrium distance from a randomly chosen sub-agent
-	 * of the cell in a random direction, until one has almost a full equilibrium distance of room
-	 * around it; failing that, the one with the most room is used. The new sub-agent therefore never
-	 * starts on top of another one. The random choices depend only
-	 * on params.random_seed and on the number of growth events so far.
+	 * Candidate positions are tried, each one equilibrium distance (of the cell's type) from a randomly chosen
+	 * sub-agent of the cell in a random direction, until one has almost a full equilibrium distance of room around it;
+	 * failing that, the one with the most room is used. The new sub-agent therefore never starts on top of another one.
+	 * The random choices depend only on params.random_seed and on the number of growth events so far.
 	 *
 	 * Element parameters are not changed: a cell with twice the sub-agents has twice the volume.
 	 */
@@ -93,6 +107,9 @@ public:
 	real_t mechanics_timestep;
 	cartesian_mesh mesh;
 	simulation_parameters params;
+
+	// The kinds of cells; a cell refers to one by its index (cell_interface::type_index)
+	std::vector<cell_type> cell_types = { cell_type {} };
 
 private:
 	// number of grow_cell() calls so far; with the seed it identifies the random choices of a call

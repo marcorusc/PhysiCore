@@ -14,6 +14,9 @@ namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
 /**
  * @brief Net force on every sub-agent: the pair forces and, if the domain has walls, the wall force.
  *
+ * Which potential acts between two sub-agents depends on their cells and on the types of those cells,
+ * see interaction_table in cell_type.h.
+ *
  * compute() finds interaction partners through a uniform grid, so its cost grows linearly with the
  * number of sub-agents at fixed density. compute_brute_force() visits every pair and is the reference
  * the grid version is tested against.
@@ -22,7 +25,7 @@ namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
  * result independent of the number of threads. The two versions sum in different orders, so they agree
  * to rounding, not bitwise.
  */
-class force_solver : private generic_agent_solver<agent>
+class force_solver : private generic_agent_solver<agent>, private generic_agent_solver<cell>
 {
 	std::vector<real_t> forces_;
 	neighbor_grid grid_;

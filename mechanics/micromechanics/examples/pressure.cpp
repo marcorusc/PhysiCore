@@ -49,10 +49,11 @@ void attach_solver(environment& env)
 void run_pair(index_t elements_per_cell)
 {
 	const simulation_parameters params;
+	const cell_type type;
 
 	std::cout << "# experiment=pair elements_per_cell=" << elements_per_cell
-			  << " equilibrium_distance=" << params.equilibrium_distance
-			  << " inter_well_depth=" << params.inter_well_depth << " cutoff_factor=" << params.cutoff_factor << '\n';
+			  << " equilibrium_distance=" << type.equilibrium_distance << " inter_well_depth=" << type.inter_well_depth
+			  << " cutoff_factor=" << params.cutoff_factor << '\n';
 	std::cout << "distance,pressure\n";
 
 	for (int step = 0; step <= 160; ++step)

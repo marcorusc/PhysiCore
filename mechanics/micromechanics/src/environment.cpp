@@ -44,19 +44,61 @@ void environment::serialize_state(real_t current_time)
 	}
 }
 
-cell_interface* environment::create_cell() { return cells->create(); }
+index_t environment::add_cell_type(cell_type type)
+{
+	cell_types.push_back(std::move(type));
+	return cell_types.size() - 1;
+}
+
+cell_interface* environment::create_cell(index_t type_index)
+{
+	if (type_index >= cell_types.size())
+	{
+		throw std::out_of_range("Invalid cell type index");
+	}
+	const cell_type& type = cell_types[type_index];
+
+	auto* new_cell = cells->create();
+	new_cell->type_index() = type_index;
+	new_cell->is_motile() = type.is_motile ? 1 : 0;
+	new_cell->migration_speed() = type.migration_speed;
+	new_cell->persistence_time() = type.persistence_time;
+	new_cell->migration_bias() = type.migration_bias;
+	return new_cell;
+}
 
 cell_interface* environment::create_cell(std::span<const real_t> centre, index_t elements_count)
 {
+	return create_cell_of_type(0, centre, elements_count);
+}
+
+cell_interface* environment::create_cell_of_type(index_t type_index, std::span<const real_t> centre)
+{
+	if (type_index >= cell_types.size())
+	{
+		throw std::out_of_range("Invalid cell type index");
+	}
+	return create_cell_of_type(type_index, centre, cell_types[type_index].elements_per_cell);
+}
+
+cell_interface* environment::create_cell_of_type(index_t type_index, std::span<const real_t> centre,
+												 index_t elements_count)
+{
+	if (type_index >= cell_types.size())
+	{
+		throw std::out_of_range("Invalid cell type index");
+	}
+
 	const index_t dims = mesh.dims;
 	if (centre.size() != dims)
 	{
 		throw std::invalid_argument("The centre of a cell needs one value per dimension");
 	}
 
-	const std::vector<real_t> offsets = packed_ball_positions(dims, elements_count, params.equilibrium_distance);
+	const std::vector<real_t> offsets =
+		packed_ball_positions(dims, elements_count, cell_types[type_index].equilibrium_distance);
 
-	auto* new_cell = create_cell();
+	auto* new_cell = create_cell(type_index);
 	const index_t cell_index = cells->size() - 1;
 
 	// the cell sits at the centre of mass of its sub-agents
@@ -123,6 +165,9 @@ agent_interface* environment::grow_cell(index_t cell_index)
 	}
 
 	const index_t dims = mesh.dims;
+	// the spacing of the elements of this cell's type
+	const real_t equilibrium_distance =
+		cell_types.at(cells->get_agent_at(cell_index)->type_index()).equilibrium_distance;
 	const std::uint64_t seed = mix(params.random_seed ^ growth_stream);
 	const index_t growth_step = growth_events++;
 
@@ -139,7 +184,7 @@ agent_interface* environment::grow_cell(index_t cell_index)
 		}
 
 		real_t best_room = -1.0;
-		const real_t squared_enough_room = std::pow(enough_room * params.equilibrium_distance, 2);
+		const real_t squared_enough_room = std::pow(enough_room * equilibrium_distance, 2);
 		for (index_t trial = 0; trial < growth_candidates && !members.empty() && best_room < squared_enough_room;
 			 ++trial)
 		{
@@ -162,8 +207,8 @@ agent_interface* environment::grow_cell(index_t cell_index)
 			std::array<real_t, 3> position {};
 			for (index_t d = 0; d < dims; ++d)
 			{
-				position.at(d) = positions[anchor * dims + d]
-								 + params.equilibrium_distance * direction.at(d) / std::sqrt(squared_length);
+				position.at(d) =
+					positions[anchor * dims + d] + equilibrium_distance * direction.at(d) / std::sqrt(squared_length);
 			}
 
 			// in a domain with walls a candidate beyond a wall is moved onto it; how much room it has
@@ -251,7 +296,7 @@ cell_interface* environment::divide_cell(index_t cell_index, std::span<const rea
 		std::clamp<index_t>(static_cast<index_t>(std::llround(daughter_fraction * count)), 1, members.size() - 1);
 	const index_t parent_count = members.size() - daughter_count;
 
-	auto* daughter = create_cell();
+	auto* daughter = create_cell(cells->get_agent_at(cell_index)->type_index());
 	const index_t daughter_index = cells->size() - 1;
 	auto* parent = cells->get_agent_at(cell_index);
 

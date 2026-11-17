@@ -20,10 +20,10 @@ namespace {
 // Cutoff distance = 2.5 * 2 = 5.
 void set_test_parameters(environment& env)
 {
-	env.params.equilibrium_distance = 2.0;
+	env.cell_types[0].equilibrium_distance = 2.0;
 	env.params.steepness = 1.5;
-	env.params.intra_well_depth = 3.0;
-	env.params.inter_well_depth = 0.75;
+	env.cell_types[0].intra_well_depth = 3.0;
+	env.cell_types[0].inter_well_depth = 0.75;
 	env.params.cutoff_factor = 2.5;
 }
 
@@ -47,7 +47,7 @@ TEST(ForceSolverTest, TwoElementsOfOneCellUseTheIntraPotential)
 	const auto forces = computed_forces(env);
 
 	// closer than the equilibrium distance: repulsion pushes each element away from the other
-	const real_t c = force_coefficient(env.params.intra_potential(), 2.25);
+	const real_t c = force_coefficient(intra_potential(env.cell_types[0], env.params), 2.25);
 	ASSERT_GT(c, 0.0);
 	ASSERT_EQ(forces.size(), 6U);
 	EXPECT_DOUBLE_EQ(forces[0], -1.5 * c);
@@ -70,14 +70,14 @@ TEST(ForceSolverTest, ElementsOfDifferentCellsUseTheInterPotential)
 	const auto forces = computed_forces(env);
 
 	// further apart than the equilibrium distance: adhesion pulls the elements together
-	const real_t c = force_coefficient(env.params.inter_potential(), 9.0);
+	const real_t c = force_coefficient(inter_potential(env.cell_types[0], env.params), 9.0);
 	ASSERT_LT(c, 0.0);
 	EXPECT_DOUBLE_EQ(forces[1], -3.0 * c);
 	EXPECT_DOUBLE_EQ(forces[4], 3.0 * c);
 	EXPECT_GT(forces[1], 0.0);
 
 	// the inter-cellular well is four times shallower than the intra-cellular one
-	EXPECT_DOUBLE_EQ(4.0 * c, force_coefficient(env.params.intra_potential(), 9.0));
+	EXPECT_DOUBLE_EQ(4.0 * c, force_coefficient(intra_potential(env.cell_types[0], env.params), 9.0));
 }
 
 TEST(ForceSolverTest, ElementsWithoutACellInteractThroughTheInterPotential)
@@ -89,7 +89,7 @@ TEST(ForceSolverTest, ElementsWithoutACellInteractThroughTheInterPotential)
 
 	const auto forces = computed_forces(env);
 
-	EXPECT_DOUBLE_EQ(forces[3], force_coefficient(env.params.inter_potential(), 1.0));
+	EXPECT_DOUBLE_EQ(forces[3], force_coefficient(inter_potential(env.cell_types[0], env.params), 1.0));
 }
 
 TEST(ForceSolverTest, NoForceFromTheCutoffOn)
@@ -120,7 +120,7 @@ TEST(ForceSolverTest, HandComputedTriangle)
 
 	const auto forces = computed_forces(env);
 
-	const real_t c = force_coefficient(env.params.intra_potential(), 8.0);
+	const real_t c = force_coefficient(intra_potential(env.cell_types[0], env.params), 8.0);
 	ASSERT_LT(c, 0.0);
 	ASSERT_EQ(forces.size(), 6U);
 	EXPECT_DOUBLE_EQ(forces[0], 0.0);

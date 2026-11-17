@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 
 	const real_t timestep = 0.002;
 	environment env({ 3, { -100, -100, -100 }, { 100, 100, 100 }, { 20, 20, 20 } }, timestep);
-	env.params.inter_well_depth = ratio * env.params.intra_well_depth;
+	env.cell_types[0].inter_well_depth = ratio * env.cell_types[0].intra_well_depth;
 
 	// the second cell starts 1.3 equilibrium distances away from the first, inside the interaction range
 	add_cell(env, 0.0, 42);
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
 
 	std::cout << std::setprecision(std::numeric_limits<real_t>::max_digits10);
 	std::cout << "# inter_to_intra_ratio=" << ratio << " timestep=" << timestep
-			  << " equilibrium_distance=" << env.params.equilibrium_distance << '\n';
+			  << " equilibrium_distance=" << env.cell_types[0].equilibrium_distance << '\n';
 	std::cout << "time,agent,cell,x,y,z\n";
 
 	print_snapshot(env, 0.0);

@@ -5,8 +5,7 @@
 
 namespace physicore::mechanics::micromechanics {
 
-simulation_parameters scale_to_elements(const cell_parameters& cell, index_t elements_per_cell,
-										const simulation_parameters& shape)
+cell_type scale_to_elements(const cell_parameters& cell, index_t elements_per_cell, const simulation_parameters& params)
 {
 	if (elements_per_cell == 0)
 	{
@@ -16,9 +15,13 @@ simulation_parameters scale_to_elements(const cell_parameters& cell, index_t ele
 	{
 		throw std::invalid_argument("Cell radius, stiffness, damping and packing density must be positive");
 	}
-	if (shape.steepness <= 0.0 || shape.intra_well_depth <= 0.0)
+	if (params.steepness <= 0.0)
 	{
-		throw std::invalid_argument("Steepness and intra-cellular well depth of the shape must be positive");
+		throw std::invalid_argument("The steepness of the potential must be positive");
+	}
+	if (cell.adhesion_ratio < 0.0)
+	{
+		throw std::invalid_argument("The adhesion ratio must not be negative");
 	}
 
 	const auto count = static_cast<real_t>(elements_per_cell);
@@ -31,14 +34,15 @@ simulation_parameters scale_to_elements(const cell_parameters& cell, index_t ele
 		throw std::invalid_argument("Too few elements per cell for this scaling correction");
 	}
 
-	simulation_parameters params = shape;
-	params.equilibrium_distance = 2.0 * cell.radius * std::cbrt(cell.packing_density / count);
-	params.drag_coefficient = cell.damping / count;
-	params.intra_well_depth = pair_stiffness * params.equilibrium_distance * params.equilibrium_distance
-							  / (8.0 * shape.steepness * shape.steepness);
-	params.inter_well_depth = params.intra_well_depth * (shape.inter_well_depth / shape.intra_well_depth);
+	cell_type type;
+	type.elements_per_cell = elements_per_cell;
+	type.equilibrium_distance = 2.0 * cell.radius * std::cbrt(cell.packing_density / count);
+	type.drag_coefficient = cell.damping / count;
+	type.intra_well_depth = pair_stiffness * type.equilibrium_distance * type.equilibrium_distance
+							/ (8.0 * params.steepness * params.steepness);
+	type.inter_well_depth = type.intra_well_depth * cell.adhesion_ratio;
 
-	return params;
+	return type;
 }
 
 } // namespace physicore::mechanics::micromechanics

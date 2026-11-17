@@ -4,9 +4,11 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include <vector>
 
 #include <micromechanics/counter_random.h>
 
+#include "element_types.h"
 #include "parallel_threshold.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
@@ -21,11 +23,23 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 
 	assert(forces.size() == agents_count * dims);
 
-	const real_t inverse_drag = 1.0 / e.params.drag_coefficient;
 	const real_t timestep = e.mechanics_timestep;
+	const bool noisy = e.params.thermal_energy > 0.0;
 
-	const bool noisy = e.params.diffusion_coefficient > 0.0;
-	const real_t noise_amplitude = noisy ? std::sqrt(2.0 * e.params.diffusion_coefficient * timestep) : 0.0;
+	// per cell type: one over the drag of an element, and how far the noise moves it in one step.
+	// An element diffuses with D = thermal_energy / drag (Einstein relation).
+	std::vector<real_t> inverse_drags;
+	std::vector<real_t> noise_amplitudes;
+	for (const cell_type& type : e.cell_types)
+	{
+		inverse_drags.push_back(1.0 / type.drag_coefficient);
+		const real_t diffusion_coefficient = e.params.thermal_energy * inverse_drags.back();
+		noise_amplitudes.push_back(noisy ? std::sqrt(2.0 * diffusion_coefficient * timestep) : 0.0);
+	}
+	const real_t* inverse_drag_of_type = inverse_drags.data();
+	const real_t* noise_amplitude_of_type = noise_amplitudes.data();
+	const index_t* type_indices = cells.type_indices.data();
+	const index_t cells_count = cells.cells_count;
 	const std::uint64_t seed = e.params.random_seed;
 	const index_t step = step_;
 
@@ -48,6 +62,9 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 		const index_t cell_index = cell_indices[i];
 		const bool movable = cell_index == no_cell || is_movable[cell_index] != 0;
 		const bool motile = cell_index != no_cell && is_motile[cell_index] != 0;
+		const index_t type = type_of_element(cell_index, type_indices, cells_count);
+		const real_t inverse_drag = inverse_drag_of_type[type];
+		const real_t noise_amplitude = noise_amplitude_of_type[type];
 
 		for (index_t d = 0; d < dims; ++d)
 		{

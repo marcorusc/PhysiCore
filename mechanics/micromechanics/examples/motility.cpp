@@ -84,7 +84,7 @@ void run_msd(const walk_parameters& walk)
 	environment env = make_environment(walk.dims);
 	env.params.random_seed = 2026;
 	// one sub-agent per cell and no force between cells: the cells are free
-	env.params.inter_well_depth = 0.0;
+	env.cell_types[0].inter_well_depth = 0.0;
 	for (index_t c = 0; c < cells; ++c)
 	{
 		make_motile(*env.create_cell(), walk);
@@ -129,7 +129,7 @@ void run_tracks(const walk_parameters& walk)
 	environment env = make_environment(walk.dims);
 	env.params.random_seed = 2026;
 	// the cells start far apart, but their walks may cross: no force between cells keeps them free
-	env.params.inter_well_depth = 0.0;
+	env.cell_types[0].inter_well_depth = 0.0;
 	for (index_t c = 0; c < cells; ++c)
 	{
 		const std::array<real_t, 3> centre = { separation * static_cast<real_t>(c), 0.0, 0.0 };

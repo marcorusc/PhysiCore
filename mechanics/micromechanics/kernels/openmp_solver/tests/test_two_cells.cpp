@@ -102,7 +102,7 @@ two_cell_state measure(environment& env)
 TEST(TwoCellsTest, DefaultParametersMakeCellsAdhereWithoutMixing)
 {
 	environment env = make_environment(3, 0.002);
-	ASSERT_DOUBLE_EQ(env.params.inter_well_depth / env.params.intra_well_depth, 0.5);
+	ASSERT_DOUBLE_EQ(env.cell_types[0].inter_well_depth / env.cell_types[0].intra_well_depth, 0.5);
 	add_two_cells(env);
 	const two_cell_state before = measure(env);
 
@@ -129,7 +129,7 @@ TEST(TwoCellsTest, WithoutInterCellularWellCellsIgnoreEachOther)
 	// The well depth scales repulsion as well as adhesion, so a zero inter-cellular depth removes the
 	// interaction between cells altogether: each cell evolves exactly as if it were alone.
 	environment both = make_environment(3, 0.002);
-	both.params.inter_well_depth = 0.0;
+	both.cell_types[0].inter_well_depth = 0.0;
 	add_two_cells(both);
 
 	environment alone = make_environment(3, 0.002);
@@ -156,7 +156,7 @@ TEST(TwoCellsTest, EqualWellDepthsMakeCellsIndistinguishableAndTheyMerge)
 {
 	// With equal depths every pair interacts in the same way, whatever cell the elements belong to...
 	environment two_cells = make_environment(3, 0.002);
-	two_cells.params.inter_well_depth = two_cells.params.intra_well_depth;
+	two_cells.cell_types[0].inter_well_depth = two_cells.cell_types[0].intra_well_depth;
 	add_two_cells(two_cells);
 
 	// ... so the dynamics is that of a single cell holding all the elements.

@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include "micromechanics/cell_type.h"
 #include "micromechanics/pair_potential.h"
 #include "micromechanics/simulation_parameters.h"
 
@@ -161,14 +162,15 @@ TEST(PairPotentialTest, SameSeparationGivesSameForceIn2DAnd3D)
 TEST(SimulationParametersTest, IntraAndInterPotentialsShareShapeAndDifferInDepth)
 {
 	simulation_parameters params;
-	params.equilibrium_distance = 2.0;
+	cell_type type;
+	type.equilibrium_distance = 2.0;
 	params.steepness = 1.5;
-	params.intra_well_depth = 3.0;
-	params.inter_well_depth = 0.75;
+	type.intra_well_depth = 3.0;
+	type.inter_well_depth = 0.75;
 	params.cutoff_factor = 2.5;
 
-	const pair_potential intra = params.intra_potential();
-	const pair_potential inter = params.inter_potential();
+	const pair_potential intra = intra_potential(type, params);
+	const pair_potential inter = inter_potential(type, params);
 
 	EXPECT_DOUBLE_EQ(intra.well_depth, 3.0);
 	EXPECT_DOUBLE_EQ(inter.well_depth, 0.75);
@@ -183,8 +185,9 @@ TEST(SimulationParametersTest, IntraAndInterPotentialsShareShapeAndDifferInDepth
 TEST(SimulationParametersTest, DefaultsKeepCellsCohesive)
 {
 	const simulation_parameters params;
+	const cell_type type;
 
-	EXPECT_GT(params.intra_well_depth, params.inter_well_depth);
+	EXPECT_GT(type.intra_well_depth, type.inter_well_depth);
 	EXPECT_DOUBLE_EQ(params.steepness, 2.0);
 	EXPECT_DOUBLE_EQ(params.cutoff_factor, 2.5);
 }

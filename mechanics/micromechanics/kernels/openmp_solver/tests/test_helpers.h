@@ -65,8 +65,8 @@ inline real_t squared_distance(environment& env, index_t i, index_t j)
 // Total potential energy, each pair counted once
 inline real_t total_energy(environment& env)
 {
-	const pair_potential intra = env.params.intra_potential();
-	const pair_potential inter = env.params.inter_potential();
+	const pair_potential intra = intra_potential(env.cell_types[0], env.params);
+	const pair_potential inter = inter_potential(env.cell_types[0], env.params);
 
 	real_t energy = 0.0;
 	for (index_t i = 0; i < env.agents->size(); ++i)

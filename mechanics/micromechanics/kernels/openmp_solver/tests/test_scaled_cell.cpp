@@ -20,15 +20,16 @@ constexpr cell_parameters paper_cell { .radius = 10.0, .stiffness = 5000.0, .dam
 // Radius of the relaxed cell: sqrt(5/3) times the radius of gyration, which is exact for a uniform ball
 real_t relaxed_radius(index_t elements_per_cell)
 {
-	const simulation_parameters params = scale_to_elements(paper_cell, elements_per_cell);
+	const simulation_parameters shape;
+	const cell_type type = scale_to_elements(paper_cell, elements_per_cell, shape);
 
 	// a twentieth of the largest stable timestep of an isolated pair
-	const real_t pair_stiffness = 8.0 * params.intra_well_depth * params.steepness * params.steepness
-								  / (params.equilibrium_distance * params.equilibrium_distance);
-	const real_t timestep = 0.05 * params.drag_coefficient / pair_stiffness;
+	const real_t pair_stiffness = 8.0 * type.intra_well_depth * shape.steepness * shape.steepness
+								  / (type.equilibrium_distance * type.equilibrium_distance);
+	const real_t timestep = 0.05 * type.drag_coefficient / pair_stiffness;
 
 	environment env = make_environment(3, timestep);
-	env.params = params;
+	env.cell_types[0] = type;
 	env.create_cell();
 
 	// elements scattered uniformly in a ball of the requested radius

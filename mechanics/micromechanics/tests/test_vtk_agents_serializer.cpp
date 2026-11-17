@@ -89,7 +89,7 @@ TEST_F(VtkMicromechanicsAgentsSerializerTest, WritesPositionsAndAllArrays)
 {
 	environment env = make_environment(3);
 	env.create_cell();
-	env.create_cell();
+	env.create_cell(env.add_cell_type(cell_type {}));
 
 	auto* first = env.create_agent(1);
 	std::ranges::copy(std::array { 1.0, 2.0, 3.0 }, first->position().begin());
@@ -118,13 +118,19 @@ TEST_F(VtkMicromechanicsAgentsSerializerTest, WritesPositionsAndAllArrays)
 	expect_tuple(point, { 9.0, 0.0, 0.0 });
 
 	auto* point_data = grid->GetPointData();
-	ASSERT_EQ(point_data->GetNumberOfArrays(), 2);
+	ASSERT_EQ(point_data->GetNumberOfArrays(), 3);
 
 	auto* cell_index = vtkIdTypeArray::SafeDownCast(point_data->GetArray("cell_index"));
 	ASSERT_NE(cell_index, nullptr);
 	EXPECT_EQ(cell_index->GetValue(0), 1);
 	EXPECT_EQ(cell_index->GetValue(1), 0);
 	EXPECT_EQ(cell_index->GetValue(2), -1);
+
+	auto* cell_type_values = vtkIdTypeArray::SafeDownCast(point_data->GetArray("cell_type"));
+	ASSERT_NE(cell_type_values, nullptr);
+	EXPECT_EQ(cell_type_values->GetValue(0), 1); // the second cell is of the second type
+	EXPECT_EQ(cell_type_values->GetValue(1), 0);
+	EXPECT_EQ(cell_type_values->GetValue(2), -1);
 
 	expect_tuple(tuple_of(point_data, "velocity", 0), { 0.1, 0.2, 0.3 });
 	expect_tuple(tuple_of(point_data, "velocity", 1), { 0.0, 0.0, 0.0 });

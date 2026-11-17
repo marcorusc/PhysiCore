@@ -94,7 +94,7 @@ TEST_P(PressureTest, MatchesTheValueComputedByHand)
 	// along x, c being the force coefficient of the inter-cellular potential at that distance. It sits
 	// at +1 from the centre of its cell, so its term of the virial is -c * gap. The member at -1 gives
 	// the same. The cell has two sub-agents.
-	const real_t coefficient = force_coefficient(env.params.inter_potential(), gap * gap);
+	const real_t coefficient = force_coefficient(inter_potential(env.cell_types[0], env.params), gap * gap);
 	ASSERT_GT(coefficient, 0.0); // closer than the equilibrium distance: repulsion
 	const real_t expected = 2.0 * coefficient * gap / (static_cast<real_t>(dims) * 2.0 * element_volume(dims));
 
@@ -111,7 +111,7 @@ TEST_P(PressureTest, IsNegativeWhenTheNeighboursPullOutwards)
 	add_squeezed_pair(env, gap);
 	update_pressures(env);
 
-	const real_t coefficient = force_coefficient(env.params.inter_potential(), gap * gap);
+	const real_t coefficient = force_coefficient(inter_potential(env.cell_types[0], env.params), gap * gap);
 	ASSERT_LT(coefficient, 0.0);
 	const real_t expected = 2.0 * coefficient * gap / (static_cast<real_t>(dims) * 2.0 * element_volume(dims));
 
@@ -354,7 +354,7 @@ TEST(PressureTest, CellsCrawlingAgainstEachOtherAreCompressedByTheirTraction)
 			rightmost_of_left = std::max(rightmost_of_left, element->position()[0]);
 	}
 
-	const real_t traction = static_cast<real_t>(elements) * env.params.drag_coefficient * speed;
+	const real_t traction = static_cast<real_t>(elements) * env.cell_types[0].drag_coefficient * speed;
 	const real_t lever_arm = rightmost_of_left - left->position()[0];
 	const real_t volume = static_cast<real_t>(elements) * element_volume(1);
 	const real_t estimate = traction * lever_arm / (1.0 * volume);

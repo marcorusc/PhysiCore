@@ -149,11 +149,12 @@ void run(const options& opts)
 {
 	simulation_parameters params;
 	params.steepness = opts.steepness;
+	const cell_type type;
 
 	// a twentieth of the largest stable timestep of an isolated pair
-	const real_t pair_stiffness = 8.0 * params.intra_well_depth * params.steepness * params.steepness
-								  / (params.equilibrium_distance * params.equilibrium_distance);
-	const real_t timestep = 0.05 * params.drag_coefficient / pair_stiffness;
+	const real_t pair_stiffness = 8.0 * type.intra_well_depth * params.steepness * params.steepness
+								  / (type.equilibrium_distance * type.equilibrium_distance);
+	const real_t timestep = 0.05 * type.drag_coefficient / pair_stiffness;
 
 	simulation sim { .env = { { 3, { -100, -100, -100 }, { 100, 100, 100 }, { 20, 20, 20 } }, timestep },
 					 .timestep = timestep };

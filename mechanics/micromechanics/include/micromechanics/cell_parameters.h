@@ -4,6 +4,7 @@
 
 #include <common/types.h>
 
+#include "cell_type.h"
 #include "simulation_parameters.h"
 
 namespace physicore::mechanics::micromechanics {
@@ -31,10 +32,14 @@ struct cell_parameters
 
 	// Leading correction to the stiffness scaling (lambda); 0.75 is the value used in the paper
 	real_t scaling_correction = 0.75;
+
+	// Depth of the well between two cells of this kind, as a fraction of the well inside the cell.
+	// Below 1 the cells adhere and stay distinct; at 1 nothing tells two cells apart and they merge.
+	real_t adhesion_ratio = 0.5;
 };
 
 /**
- * @brief Element-level parameters that make a cell of elements_per_cell elements behave like cell.
+ * @brief The cell type whose elements make a cell of elements_per_cell elements behave like cell.
  *
  * With N = elements_per_cell (the paper recommends N of about 100 or more):
  *
@@ -42,13 +47,15 @@ struct cell_parameters
  *     pair stiffness kappa = stiffness * N^(-1/3) * (1 - scaling_correction * N^(-1/3))   (Eq. 11)
  *     drag_coefficient     = damping / N                                                  (Eq. 12)
  *     intra_well_depth     = kappa * equilibrium_distance^2 / (8 * steepness^2)           (Eq. 5)
+ *     inter_well_depth     = adhesion_ratio * intra_well_depth
  *
- * steepness, cutoff_factor and the ratio of the inter- to the intra-cellular well depth are taken
- * from shape. The relations are those of the paper and hold in three dimensions only.
+ * The steepness is taken from params, which must be the parameters the simulation runs with. The
+ * relations are those of the paper and hold in three dimensions only. Name, affinities and motility
+ * of the returned type are left at their defaults.
  *
  * @throws std::invalid_argument if a value is not positive or the well depth would not be positive
  */
-simulation_parameters scale_to_elements(const cell_parameters& cell, index_t elements_per_cell,
-										const simulation_parameters& shape = {});
+cell_type scale_to_elements(const cell_parameters& cell, index_t elements_per_cell,
+							const simulation_parameters& params = {});
 
 } // namespace physicore::mechanics::micromechanics

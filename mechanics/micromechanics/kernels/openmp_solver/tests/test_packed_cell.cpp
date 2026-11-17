@@ -55,14 +55,15 @@ TEST_P(PackedCellTest, PackedCellStaysIntactAndKeepsTheRequestedSize)
 {
 	simulation_parameters shape;
 	shape.steepness = GetParam();
-	const simulation_parameters params = scale_to_elements(paper_cell, 256, shape);
+	const cell_type type = scale_to_elements(paper_cell, 256, shape);
 
-	const real_t pair_stiffness = 8.0 * params.intra_well_depth * params.steepness * params.steepness
-								  / (params.equilibrium_distance * params.equilibrium_distance);
-	const real_t timestep = 0.05 * params.drag_coefficient / pair_stiffness;
+	const real_t pair_stiffness = 8.0 * type.intra_well_depth * shape.steepness * shape.steepness
+								  / (type.equilibrium_distance * type.equilibrium_distance);
+	const real_t timestep = 0.05 * type.drag_coefficient / pair_stiffness;
 
 	environment env = make_environment(3, timestep);
-	env.params = params;
+	env.params = shape;
+	env.cell_types[0] = type;
 	const std::array<real_t, 3> centre = { 3.0, -2.0, 7.0 };
 	env.create_cell(centre, 256);
 

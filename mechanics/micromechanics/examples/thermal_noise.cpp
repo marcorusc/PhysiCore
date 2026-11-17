@@ -51,9 +51,9 @@ void run_diffusion(index_t dims, real_t diffusion)
 	const real_t separation = 10.0;
 
 	environment env = make_environment(dims, timestep);
-	env.params.diffusion_coefficient = diffusion;
+	env.params.thermal_energy = diffusion;
 	// elements without a cell use the inter-cellular potential; switching it off makes them free
-	env.params.inter_well_depth = 0.0;
+	env.cell_types[0].inter_well_depth = 0.0;
 	for (index_t i = 0; i < elements; ++i)
 	{
 		env.agents->create()->position()[0] = separation * static_cast<real_t>(i);
@@ -92,20 +92,21 @@ void run_pair(real_t thermal_energy_over_stiffness)
 	const index_t samples = 20;
 
 	const simulation_parameters params;
-	const real_t stiffness = 8.0 * params.intra_well_depth * params.steepness * params.steepness
-							 / (params.equilibrium_distance * params.equilibrium_distance);
+	const cell_type type;
+	const real_t stiffness = 8.0 * type.intra_well_depth * params.steepness * params.steepness
+							 / (type.equilibrium_distance * type.equilibrium_distance);
 	const real_t thermal_energy = thermal_energy_over_stiffness * stiffness;
 
 	// the pair distance relaxes in drag / (2 k); the timestep resolves that 25 times
-	const real_t timestep = 0.02 * params.drag_coefficient / stiffness;
+	const real_t timestep = 0.02 * type.drag_coefficient / stiffness;
 
 	environment env = make_environment(3, timestep);
-	env.params.diffusion_coefficient = thermal_energy / params.drag_coefficient;
+	env.params.thermal_energy = thermal_energy;
 	env.params.random_seed = 2026;
 	env.create_cell();
 	for (index_t p = 0; p < pairs; ++p)
 	{
-		for (const real_t y : { 0.0, params.equilibrium_distance })
+		for (const real_t y : { 0.0, type.equilibrium_distance })
 		{
 			auto position = env.create_agent(0)->position();
 			position[0] = 10.0 * static_cast<real_t>(p);
@@ -115,9 +116,9 @@ void run_pair(real_t thermal_energy_over_stiffness)
 	attach_solver(env);
 
 	std::cout << "# experiment=pair thermal_energy=" << thermal_energy << " stiffness=" << stiffness
-			  << " well_depth=" << params.intra_well_depth << " equilibrium_distance=" << params.equilibrium_distance
+			  << " well_depth=" << type.intra_well_depth << " equilibrium_distance=" << type.equilibrium_distance
 			  << " steepness=" << params.steepness << " cutoff_factor=" << params.cutoff_factor
-			  << " drag_coefficient=" << params.drag_coefficient << " timestep=" << timestep << '\n';
+			  << " drag_coefficient=" << type.drag_coefficient << " timestep=" << timestep << '\n';
 	std::cout << "distance\n";
 	// nine digits are plenty for a histogram and keep the output small
 	std::cout << std::setprecision(9);

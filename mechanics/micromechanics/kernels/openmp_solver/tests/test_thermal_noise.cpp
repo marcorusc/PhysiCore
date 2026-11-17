@@ -24,7 +24,7 @@ namespace {
 // switched off. They start on a line, far enough apart that the neighbour search has nothing to do.
 void add_free_elements(environment& env, index_t count)
 {
-	env.params.inter_well_depth = 0.0;
+	env.cell_types[0].inter_well_depth = 0.0;
 	for (index_t i = 0; i < count; ++i)
 	{
 		env.agents->create()->position()[0] = 10.0 * static_cast<real_t>(i);
@@ -59,7 +59,7 @@ TEST_P(FreeDiffusionTest, MeanSquaredDisplacementGrowsAsTwoDimsDTime)
 	const index_t steps = 200;
 
 	environment env = make_environment(dims, timestep);
-	env.params.diffusion_coefficient = diffusion;
+	env.params.thermal_energy = diffusion;
 	add_free_elements(env, elements);
 
 	openmp_solver solver;
@@ -108,7 +108,7 @@ TEST(ThermalNoiseTest, DisplacementScalesWithTheSquareRootOfTheTimestep)
 	for (const real_t timestep : { 0.001, 0.004 })
 	{
 		environment env = make_environment(3, timestep);
-		env.params.diffusion_coefficient = diffusion;
+		env.params.thermal_energy = diffusion;
 		add_free_elements(env, elements);
 
 		openmp_solver solver;
@@ -143,7 +143,7 @@ TEST(ThermalNoiseTest, PairFluctuatesWithTheThermalEnergy)
 	const real_t timestep = 0.02 / stiffness;
 
 	environment env = make_environment(3, timestep);
-	env.params.diffusion_coefficient = thermal_energy / env.params.drag_coefficient;
+	env.params.thermal_energy = thermal_energy;
 	env.params.random_seed = 2026;
 	env.create_cell();
 
@@ -185,7 +185,7 @@ TEST(ThermalNoiseTest, SameSeedGivesTheSameRunAndAnotherSeedADifferentOne)
 {
 	const auto run = [](std::uint64_t seed) {
 		environment env = make_environment(3, 0.002);
-		env.params.diffusion_coefficient = 0.01;
+		env.params.thermal_energy = 0.01;
 		env.params.random_seed = seed;
 		add_jittered_lattice_cell(env, 1.0, 0.1);
 
@@ -219,7 +219,7 @@ TEST(ThermalNoiseTest, ZeroDiffusionIsTheDeterministicSolverWhateverTheSeed)
 TEST(ThermalNoiseTest, ImmovableCellIsNotShakenByNoise)
 {
 	environment env = make_environment(3, 0.01);
-	env.params.diffusion_coefficient = 1.0;
+	env.params.thermal_energy = 1.0;
 	env.create_cell()->is_movable() = 0;
 	auto* element = add_agent(env, 0, { 1.0, 2.0, 3.0 });
 
@@ -243,7 +243,7 @@ TEST(ThermalNoiseTest, CellDiffusesMoreSlowlyThanItsElementsAndStaysIntact)
 
 	environment env = make_environment(3, timestep);
 	// thermal energy D * drag = 0.05 u0: strong enough to shake the cells, too weak to break bonds
-	env.params.diffusion_coefficient = 0.05;
+	env.params.thermal_energy = 0.05;
 	env.params.random_seed = 7;
 
 	for (index_t c = 0; c < cells_count; ++c)
@@ -271,8 +271,7 @@ TEST(ThermalNoiseTest, CellDiffusesMoreSlowlyThanItsElementsAndStaysIntact)
 	}
 
 	const real_t end_time = timestep * static_cast<real_t>(steps);
-	const real_t expected =
-		2.0 * 3.0 * env.params.diffusion_coefficient / static_cast<real_t>(elements_per_cell) * end_time;
+	const real_t expected = 2.0 * 3.0 * env.params.thermal_energy / static_cast<real_t>(elements_per_cell) * end_time;
 
 	// 200 cells in 3D: relative standard error sqrt(2 / 600) = 6%. A longer run with 400 cells and
 	// 500 steps measured 1.04 times the expected value.
@@ -301,7 +300,7 @@ TEST(ThermalNoiseTest, NoisyRunDoesNotDependOnTheNumberOfThreads)
 		omp_set_num_threads(threads);
 
 		environment env = make_environment(3, 0.01);
-		env.params.diffusion_coefficient = 0.05;
+		env.params.thermal_energy = 0.05;
 		add_free_elements(env, 4 * parallel_threshold);
 
 		openmp_solver solver;

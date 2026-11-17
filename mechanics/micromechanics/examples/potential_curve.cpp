@@ -14,6 +14,7 @@
 #include <span>
 #include <string>
 
+#include <micromechanics/cell_type.h>
 #include <micromechanics/pair_potential.h>
 #include <micromechanics/simulation_parameters.h>
 
@@ -25,6 +26,7 @@ int main(int argc, char** argv)
 	const std::span<char*> args(argv, static_cast<std::size_t>(argc));
 
 	simulation_parameters params;
+	cell_type type;
 	index_t samples = 301;
 
 	try
@@ -35,10 +37,10 @@ int main(int argc, char** argv)
 		}
 		if (args.size() >= 6)
 		{
-			params.equilibrium_distance = std::stod(args[1]);
+			type.equilibrium_distance = std::stod(args[1]);
 			params.steepness = std::stod(args[2]);
-			params.intra_well_depth = std::stod(args[3]);
-			params.inter_well_depth = std::stod(args[4]);
+			type.intra_well_depth = std::stod(args[3]);
+			type.inter_well_depth = std::stod(args[4]);
 			params.cutoff_factor = std::stod(args[5]);
 		}
 		if (args.size() == 7)
@@ -58,15 +60,15 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	const pair_potential intra = params.intra_potential();
-	const pair_potential inter = params.inter_potential();
+	const pair_potential intra = intra_potential(type, params);
+	const pair_potential inter = inter_potential(type, params);
 
 	// sample slightly past the cutoff so the truncation is visible
 	const real_t r_max = 1.1 * intra.cutoff_distance;
 
 	std::cout << std::setprecision(std::numeric_limits<real_t>::max_digits10);
-	std::cout << "# equilibrium_distance=" << params.equilibrium_distance << " steepness=" << params.steepness
-			  << " intra_well_depth=" << params.intra_well_depth << " inter_well_depth=" << params.inter_well_depth
+	std::cout << "# equilibrium_distance=" << type.equilibrium_distance << " steepness=" << params.steepness
+			  << " intra_well_depth=" << type.intra_well_depth << " inter_well_depth=" << type.inter_well_depth
 			  << " cutoff_factor=" << params.cutoff_factor << '\n';
 	std::cout << "r,intra_energy,intra_force,inter_energy,inter_force\n";
 

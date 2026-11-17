@@ -52,7 +52,7 @@ real_t total_energy_with_walls(environment& env, real_t half_size)
 	{
 		for (const real_t coordinate : env.agents->get_agent_at(i)->position())
 		{
-			energy += wall_energy(env.params.wall_potential(), coordinate, -half_size, half_size);
+			energy += wall_energy(wall_potential(env.cell_types[0], env.params), coordinate, -half_size, half_size);
 		}
 	}
 	return energy;
@@ -64,7 +64,7 @@ real_t total_energy_with_walls(environment& env, real_t half_size)
 TEST(DomainWallTest, ForceIsTheRepulsionOfTheMirrorImage)
 {
 	const simulation_parameters params;
-	const pair_potential wall = params.wall_potential();
+	const pair_potential wall = wall_potential(cell_type {}, params);
 
 	// 0.3 from the lower wall: the image is 0.6 away, closer than the equilibrium distance of 1
 	const real_t expected = force_coefficient(wall, 0.6 * 0.6) * 0.6;
@@ -78,7 +78,7 @@ TEST(DomainWallTest, ForceIsTheRepulsionOfTheMirrorImage)
 TEST(DomainWallTest, ForceActsOnlyWithinHalfAnEquilibriumDistanceAndNeverAttracts)
 {
 	const simulation_parameters params;
-	const pair_potential wall = params.wall_potential();
+	const pair_potential wall = wall_potential(cell_type {}, params);
 
 	// touching: a sphere of radius r_eq / 2 just reaches the wall
 	EXPECT_DOUBLE_EQ(wall_force(wall, -10.0 + 0.5, -10.0, 10.0), 0.0);
@@ -100,7 +100,7 @@ TEST(DomainWallTest, ForceActsOnlyWithinHalfAnEquilibriumDistanceAndNeverAttract
 TEST(DomainWallTest, ForceIsMinusTheDerivativeOfTheWallEnergy)
 {
 	const simulation_parameters params;
-	const pair_potential wall = params.wall_potential();
+	const pair_potential wall = wall_potential(cell_type {}, params);
 	const real_t step = 1e-6;
 
 	for (const real_t distance : { 0.05, 0.2, 0.35, 0.45 })
@@ -122,7 +122,7 @@ TEST(DomainWallTest, ElementOnOrBeyondAWallFeelsNoForceFromIt)
 	// the repulsion of this potential vanishes when two elements coincide; the solver puts such
 	// elements back instead (see the tests of the hard stop)
 	const simulation_parameters params;
-	const pair_potential wall = params.wall_potential();
+	const pair_potential wall = wall_potential(cell_type {}, params);
 
 	EXPECT_DOUBLE_EQ(wall_force(wall, -10.0, -10.0, 10.0), 0.0);
 	EXPECT_DOUBLE_EQ(wall_force(wall, -12.0, -10.0, 10.0), 0.0);
@@ -137,7 +137,7 @@ INSTANTIATE_TEST_SUITE_P(Dimensions, DomainWallDimsTest, ::testing::Values(1, 2,
 TEST_P(DomainWallDimsTest, EveryFaceOfTheDomainPushesAlongItsNormalOnly)
 {
 	const index_t dims = GetParam();
-	const real_t expected = force_coefficient(simulation_parameters().wall_potential(), 0.6 * 0.6) * 0.6;
+	const real_t expected = force_coefficient(wall_potential(cell_type {}, simulation_parameters {}), 0.6 * 0.6) * 0.6;
 
 	for (index_t axis = 0; axis < dims; ++axis)
 	{
@@ -175,15 +175,15 @@ TEST(DomainWallTest, TwoDimensionalDomainHasNoWallAlongZ)
 
 TEST(DomainWallTest, WallsAreOffByDefaultAndThenChangeNothing)
 {
-	const auto run = [](bool mention_walls) {
+	const auto run = [](bool say_so) {
 		// a tiny domain: everything is outside it
 		environment env({ 3, { -1, -1, -1 }, { 1, 1, 1 }, { 1, 1, 1 } }, 0.002);
-		if (mention_walls)
+		if (say_so)
 		{
-			env.params.wall_well_depth = 7.0; // has no effect while the walls are off
+			env.params.domain_walls = false; // said out loud; it is the default
 		}
 		EXPECT_FALSE(env.params.domain_walls);
-		env.params.diffusion_coefficient = 0.01;
+		env.params.thermal_energy = 0.01;
 		add_jittered_lattice_cell(env, 1.0, 0.1, 5.0);
 
 		openmp_solver solver;
@@ -218,8 +218,8 @@ TEST(DomainWallTest, CrawlingElementStopsWhereTheWallBalancesItsTraction)
 
 	// At rest the wall force equals the traction drag_coefficient * speed. The wall force rises from
 	// zero at the distance 0.5; the element stops at the first distance where it reaches the traction.
-	const pair_potential wall = env.params.wall_potential();
-	const real_t traction = env.params.drag_coefficient * speed;
+	const pair_potential wall = wall_potential(env.cell_types[0], env.params);
+	const real_t traction = env.cell_types[0].drag_coefficient * speed;
 	real_t far = 0.5;
 	real_t near = 0.4;
 	ASSERT_GT(-wall_force(wall, 10.0 - near, -10.0, 10.0), traction);
@@ -245,8 +245,10 @@ TEST_P(DomainWallDimsTest, NoElementLeavesTheDomainUnderStrongNoise)
 	// past the soft wall, and the hard stop has to catch them
 	environment env = make_box(dims, 0.01, half_size);
 	env.params.domain_walls = true;
-	env.params.diffusion_coefficient = 2.0;
-	env.params.inter_well_depth = 0.0;
+	env.params.thermal_energy = 2.0;
+	// the wall is as strong as the contact between two cells, so that stays; without affinity the
+	// elements only repel each other and do not clump
+	env.cell_types[0].adhesion_affinities = { 0.0 };
 	env.params.random_seed = 4;
 	for (index_t i = 0; i < 200; ++i)
 	{
@@ -281,15 +283,14 @@ TEST(DomainWallTest, GentleNoiseNeverNeedsTheHardStop)
 	// thermal energy 0.02, a twenty-fifth of the well depth of the wall: the soft wall alone holds
 	environment env = make_box(3, 0.002, 3);
 	env.params.domain_walls = true;
-	env.params.diffusion_coefficient = 0.02;
-	env.params.inter_well_depth = 0.0;
-	for (index_t i = 0; i < 100; ++i)
+	env.params.thermal_energy = 0.02;
+	for (index_t i = 0; i < 5; ++i)
 	{
-		// start next to the walls, where it matters
+		// start within the reach of two walls, where it matters, 1.2 apart from each other
 		auto position = env.agents->create()->position();
-		position[0] = 2.4;
-		position[1] = -2.4;
-		position[2] = 0.05 * static_cast<real_t>(i) - 2.4;
+		position[0] = 2.6;
+		position[1] = -2.6;
+		position[2] = 1.2 * static_cast<real_t>(i) - 2.4;
 	}
 
 	openmp_solver solver;
@@ -400,7 +401,7 @@ TEST(DomainWallTest, CellCrawlingIntoAWallIsCompressedByItsTraction)
 	// The wall holds the cell with a force equal to its traction N * drag * speed, applied at the wall,
 	// which is the distance from the centre of the cell to the wall away. A little less in fact: the
 	// force acts on elements up to half an equilibrium distance inside the wall.
-	const real_t traction = static_cast<real_t>(elements) * env.params.drag_coefficient * speed;
+	const real_t traction = static_cast<real_t>(elements) * env.cell_types[0].drag_coefficient * speed;
 	const real_t lever_arm = 6.0 - cell->position()[0];
 	const real_t volume = static_cast<real_t>(elements) / std::numbers::sqrt2;
 	const real_t estimate = traction * lever_arm / (3.0 * volume);
@@ -443,11 +444,12 @@ TEST(DomainWallTest, RunWithWallsDoesNotDependOnTheNumberOfThreads)
 	const auto run = [](int threads) {
 		omp_set_num_threads(threads);
 
-		// a small box and strong noise, so that the walls and the hard stop are both at work
+		// a small box and strong noise on elements without a contact well, which have no soft wall
+		// either: the hard stop is at work in every step
 		environment env = make_box(3, 0.01, 2);
 		env.params.domain_walls = true;
-		env.params.diffusion_coefficient = 2.0;
-		env.params.inter_well_depth = 0.0;
+		env.params.thermal_energy = 2.0;
+		env.cell_types[0].inter_well_depth = 0.0;
 		for (index_t i = 0; i < 4 * parallel_threshold; ++i)
 		{
 			env.agents->create();

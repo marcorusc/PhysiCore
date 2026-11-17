@@ -39,6 +39,10 @@ vtk_agents_serializer::vtk_agents_serializer(std::string_view output_dir)
 	cell_index_array->SetNumberOfComponents(1);
 	unstructured_grid->GetPointData()->AddArray(cell_index_array);
 
+	cell_type_array->SetName("cell_type");
+	cell_type_array->SetNumberOfComponents(1);
+	unstructured_grid->GetPointData()->AddArray(cell_type_array);
+
 	velocity_array->SetName("velocity");
 	velocity_array->SetNumberOfComponents(3);
 	unstructured_grid->GetPointData()->AddArray(velocity_array);
@@ -61,6 +65,7 @@ void vtk_agents_serializer::serialize(const environment& e, real_t current_time)
 	auto vertices = vtkSmartPointer<vtkCellArray>::New();
 
 	cell_index_array->SetNumberOfTuples(agents_count);
+	cell_type_array->SetNumberOfTuples(agents_count);
 	velocity_array->SetNumberOfTuples(agents_count);
 
 	for (vtkIdType id = 0; id < agents_count; ++id)
@@ -75,6 +80,7 @@ void vtk_agents_serializer::serialize(const environment& e, real_t current_time)
 		vertices->InsertCellPoint(id);
 
 		cell_index_array->SetValue(id, has_cell ? static_cast<vtkIdType>(cell_index) : -1);
+		cell_type_array->SetValue(id, has_cell ? static_cast<vtkIdType>(cells.type_indices[cell_index]) : -1);
 		velocity_array->SetTuple(id, padded(data.velocities, i, dims).data());
 	}
 

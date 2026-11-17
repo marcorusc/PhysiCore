@@ -17,6 +17,7 @@ struct cell_data
 	index_t cells_count = 0;
 	index_t dims;
 
+	std::vector<index_t> type_indices;
 	std::vector<std::uint8_t> is_movable;
 	std::vector<std::uint8_t> is_motile;
 

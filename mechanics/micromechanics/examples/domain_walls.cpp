@@ -34,10 +34,11 @@ namespace {
 void run_force()
 {
 	const simulation_parameters params;
-	const pair_potential wall = params.wall_potential();
+	const cell_type type;
+	const pair_potential wall = wall_potential(type, params);
 
-	std::cout << "# experiment=force wall_well_depth=" << params.wall_well_depth
-			  << " equilibrium_distance=" << params.equilibrium_distance << " steepness=" << params.steepness << '\n';
+	std::cout << "# experiment=force wall_well_depth=" << wall.well_depth
+			  << " equilibrium_distance=" << type.equilibrium_distance << " steepness=" << params.steepness << '\n';
 	std::cout << "distance,wall_force,wall_energy,pair_force_at_twice_the_distance\n";
 
 	for (int step = 0; step <= 200; ++step)
@@ -79,8 +80,8 @@ void run_stall(real_t speed)
 	const auto snapshots = static_cast<index_t>(std::llround(end_time / (timestep * steps_per_snapshot)));
 
 	std::cout << "# experiment=stall migration_speed=" << speed << " elements_per_cell=" << elements_per_cell
-			  << " drag_coefficient=" << env.params.drag_coefficient
-			  << " equilibrium_distance=" << env.params.equilibrium_distance << " timestep=" << timestep << '\n';
+			  << " drag_coefficient=" << env.cell_types[0].drag_coefficient
+			  << " equilibrium_distance=" << env.cell_types[0].equilibrium_distance << " timestep=" << timestep << '\n';
 	std::cout << "time,distance_to_wall,nearest_element_to_wall,speed,pressure\n";
 
 	for (index_t snapshot = 0; snapshot <= snapshots; ++snapshot)

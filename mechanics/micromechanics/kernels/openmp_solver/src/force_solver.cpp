@@ -1,10 +1,13 @@
 #include "force_solver.h"
 
 #include <array>
+#include <vector>
 
+#include <micromechanics/cell_type.h>
 #include <micromechanics/domain_wall.h>
 #include <micromechanics/pair_potential.h>
 
+#include "element_types.h"
 #include "parallel_threshold.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
@@ -15,9 +18,10 @@ struct pair_forces
 {
 	const real_t* positions;
 	const index_t* cell_indices;
+	const index_t* type_indices;
+	index_t cells_count;
 	index_t dims;
-	pair_potential intra;
-	pair_potential inter;
+	const interaction_table* table;
 
 	// Adds the force on sub-agent i due to sub-agent j to net_force
 	void add(index_t i, index_t j, std::array<real_t, 3>& net_force) const
@@ -30,8 +34,13 @@ struct pair_forces
 			squared_distance += difference[d] * difference[d];
 		}
 
+		const index_t type_i = type_of_element(cell_indices[i], type_indices, cells_count);
 		const bool same_cell = cell_indices[i] == cell_indices[j] && cell_indices[i] != no_cell;
-		const real_t coefficient = force_coefficient(same_cell ? intra : inter, squared_distance);
+
+		const pair_interaction& interaction =
+			same_cell ? table->intra(type_i)
+					  : table->inter(type_i, type_of_element(cell_indices[j], type_indices, cells_count));
+		const real_t coefficient = force_coefficient(interaction, squared_distance);
 
 		for (index_t d = 0; d < dims; ++d)
 		{
@@ -40,26 +49,29 @@ struct pair_forces
 	}
 };
 
-pair_forces make_pair_forces(const agent_data& data, const simulation_parameters& params)
+pair_forces make_pair_forces(const agent_data& data, const cell_data& cells, const interaction_table& table)
 {
 	return { .positions = data.base_data.positions.data(),
 			 .cell_indices = data.cell_indices.data(),
+			 .type_indices = cells.type_indices.data(),
+			 .cells_count = cells.cells_count,
 			 .dims = data.base_data.dims,
-			 .intra = params.intra_potential(),
-			 .inter = params.inter_potential() };
+			 .table = &table };
 }
 } // namespace
 
 void force_solver::compute(environment& e)
 {
-	const agent_data& data = retrieve_agent_data(*e.agents);
-	const pair_forces pairs = make_pair_forces(data, e.params);
+	const agent_data& data = generic_agent_solver<agent>::retrieve_agent_data(*e.agents);
+	const cell_data& cells = generic_agent_solver<cell>::retrieve_agent_data(*e.cells);
+	const interaction_table table(e.cell_types, e.params);
+	const pair_forces pairs = make_pair_forces(data, cells, table);
 
 	const index_t agents_count = data.agents_count;
 	const index_t dims = pairs.dims;
 
-	// both potentials share the same cutoff distance
-	grid_.build(pairs.positions, agents_count, dims, pairs.intra.cutoff_distance);
+	// bins as wide as the longest reach of any pair of cell types
+	grid_.build(pairs.positions, agents_count, dims, table.largest_cutoff());
 
 	forces_.resize(agents_count * dims);
 	real_t* forces = forces_.data();
@@ -93,18 +105,31 @@ void force_solver::add_wall_forces(environment& e)
 		return;
 	}
 
-	const agent_data& data = retrieve_agent_data(*e.agents);
+	const agent_data& data = generic_agent_solver<agent>::retrieve_agent_data(*e.agents);
+	const cell_data& cells = generic_agent_solver<cell>::retrieve_agent_data(*e.cells);
 	const index_t agents_count = data.agents_count;
 	const index_t dims = data.base_data.dims;
-	const pair_potential wall = e.params.wall_potential();
 	const cartesian_mesh& mesh = e.mesh;
 
+	// a wall is as hard as another cell of the element's own type
+	std::vector<pair_potential> walls;
+	walls.reserve(e.cell_types.size());
+	for (const cell_type& type : e.cell_types)
+	{
+		walls.push_back(wall_potential(type, e.params));
+	}
+
 	const real_t* positions = data.base_data.positions.data();
+	const index_t* cell_indices = data.cell_indices.data();
+	const index_t* type_indices = cells.type_indices.data();
+	const index_t cells_count = cells.cells_count;
+	const pair_potential* wall_of_type = walls.data();
 	real_t* forces = forces_.data();
 
 #pragma omp parallel for if (agents_count >= parallel_threshold)
 	for (index_t i = 0; i < agents_count; ++i)
 	{
+		const pair_potential& wall = wall_of_type[type_of_element(cell_indices[i], type_indices, cells_count)];
 		for (index_t d = 0; d < dims; ++d)
 		{
 			forces[i * dims + d] +=
@@ -116,8 +141,10 @@ void force_solver::add_wall_forces(environment& e)
 
 void force_solver::compute_brute_force(environment& e)
 {
-	const agent_data& data = retrieve_agent_data(*e.agents);
-	const pair_forces pairs = make_pair_forces(data, e.params);
+	const agent_data& data = generic_agent_solver<agent>::retrieve_agent_data(*e.agents);
+	const cell_data& cells = generic_agent_solver<cell>::retrieve_agent_data(*e.cells);
+	const interaction_table table(e.cell_types, e.params);
+	const pair_forces pairs = make_pair_forces(data, cells, table);
 
 	const index_t agents_count = data.agents_count;
 	const index_t dims = pairs.dims;

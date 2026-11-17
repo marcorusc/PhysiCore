@@ -31,7 +31,7 @@ constexpr real_t separation = 10.0;
 // off. They start on a line along x. All get the same motility parameters and no direction yet.
 void add_walkers(environment& env, index_t count, real_t speed, real_t persistence_time, real_t bias = 0.0)
 {
-	env.params.inter_well_depth = 0.0;
+	env.cell_types[0].inter_well_depth = 0.0;
 	for (index_t c = 0; c < count; ++c)
 	{
 		auto* walker = env.create_cell();
@@ -464,7 +464,7 @@ TEST(MotilityTest, MotilityDoesNotChangeTheThermalNoise)
 	// that of cells that are not motile: the two kinds of random numbers do not share anything.
 	const auto run = [](bool motile) {
 		environment env = make_environment(3, 0.01);
-		env.params.diffusion_coefficient = 0.1;
+		env.params.thermal_energy = 0.1;
 		env.params.random_seed = 3;
 		add_walkers(env, 50, 0.0, 0.1);
 		for (index_t c = 0; c < 50; ++c)

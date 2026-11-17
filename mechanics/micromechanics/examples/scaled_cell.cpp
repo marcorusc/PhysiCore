@@ -111,15 +111,16 @@ int main(int argc, char** argv)
 		}
 
 		const cell_parameters cell { .radius = 10.0, .stiffness = 5000.0, .damping = 5000.0 };
-		const simulation_parameters params = scale_to_elements(cell, elements_per_cell, shape);
+		const cell_type type = scale_to_elements(cell, elements_per_cell, shape);
 
 		// a twentieth of the largest stable timestep of an isolated pair
-		const real_t pair_stiffness = 8.0 * params.intra_well_depth * params.steepness * params.steepness
-									  / (params.equilibrium_distance * params.equilibrium_distance);
-		const real_t timestep = 0.05 * params.drag_coefficient / pair_stiffness;
+		const real_t pair_stiffness = 8.0 * type.intra_well_depth * shape.steepness * shape.steepness
+									  / (type.equilibrium_distance * type.equilibrium_distance);
+		const real_t timestep = 0.05 * type.drag_coefficient / pair_stiffness;
 
 		environment env({ 3, { -100, -100, -100 }, { 100, 100, 100 }, { 20, 20, 20 } }, timestep);
-		env.params = params;
+		env.params = shape;
+		env.cell_types[0] = type;
 		env.create_cell();
 
 		// elements scattered uniformly in a ball of the requested radius
@@ -153,8 +154,8 @@ int main(int argc, char** argv)
 		std::cout << "# elements_per_cell=" << elements_per_cell << " cell_radius=" << cell.radius
 				  << " cell_stiffness=" << cell.stiffness << " cell_damping=" << cell.damping
 				  << " packing_density=" << cell.packing_density << " scaling_correction=" << cell.scaling_correction
-				  << " steepness=" << params.steepness << " equilibrium_distance=" << params.equilibrium_distance
-				  << " drag_coefficient=" << params.drag_coefficient << " intra_well_depth=" << params.intra_well_depth
+				  << " steepness=" << shape.steepness << " equilibrium_distance=" << type.equilibrium_distance
+				  << " drag_coefficient=" << type.drag_coefficient << " intra_well_depth=" << type.intra_well_depth
 				  << " pair_stiffness=" << pair_stiffness << " timestep=" << timestep << '\n';
 		std::cout << "time,radius_from_gyration,largest_distance,largest_speed\n";
 

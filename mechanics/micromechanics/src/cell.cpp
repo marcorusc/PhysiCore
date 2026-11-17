@@ -20,6 +20,8 @@ std::span<real_t> cell::position()
 	return { &data.positions[this->index * data.dims], static_cast<std::size_t>(data.dims) };
 }
 
+index_t& cell::type_index() { return data.type_indices[this->index]; }
+
 std::uint8_t& cell::is_movable() { return data.is_movable[this->index]; }
 
 std::uint8_t& cell::is_motile() { return data.is_motile[this->index]; }
