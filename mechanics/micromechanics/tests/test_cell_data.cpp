@@ -6,7 +6,7 @@ namespace physicore::mechanics::micromechanics::tests {
 
 TEST(CellDataTest, ConstructorSetsDimensions)
 {
-	cell_data data(2);
+	const cell_data data(2);
 
 	EXPECT_EQ(data.dims, index_t { 2 });
 	EXPECT_EQ(data.cells_count, index_t { 0 });

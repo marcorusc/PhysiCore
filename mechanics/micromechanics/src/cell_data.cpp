@@ -1,9 +1,9 @@
 #include "micromechanics/cell_data.h"
 
-#include <algorithm>
 #include <cassert>
-#include <cstddef>
 #include <utility>
+
+#include <common/base_agent_data.h>
 
 namespace physicore::mechanics::micromechanics {
 
@@ -12,25 +12,23 @@ cell_data::cell_data(index_t dims) : dims(dims) { assert(dims > 0); }
 void cell_data::add()
 {
 	++cells_count;
-	const std::size_t count = static_cast<std::size_t>(cells_count);
-	const std::size_t vector_size = count * static_cast<std::size_t>(dims);
 
-	agent_radius.resize(count, 1.0);
-	is_movable.resize(count, 1);
-	is_motile.resize(count, 0);
+	agent_radius.resize(cells_count, 1.0);
+	is_movable.resize(cells_count, 1);
+	is_motile.resize(cells_count, 0);
 
-	migration_speeds.resize(count, 0.0);
-	migration_biases.resize(count, 0.0);
-	migration_bias_directions.resize(vector_size, 0.0);
-	persistence_times.resize(count, 0.0);
-	motility_directions.resize(vector_size, 0.0);
+	migration_speeds.resize(cells_count, 0.0);
+	migration_biases.resize(cells_count, 0.0);
+	migration_bias_directions.resize(cells_count * dims, 0.0);
+	persistence_times.resize(cells_count, 0.0);
+	motility_directions.resize(cells_count * dims, 0.0);
 
-	positions.resize(vector_size, 0.0);
-	velocities.resize(vector_size, 0.0);
-	agent_counts.resize(count, 0);
-	pressures.resize(count, 0.0);
+	positions.resize(cells_count * dims, 0.0);
+	velocities.resize(cells_count * dims, 0.0);
+	agent_counts.resize(cells_count, 0);
+	pressures.resize(cells_count, 0.0);
 
-	neighbor_cells.resize(count);
+	neighbor_cells.resize(cells_count);
 }
 
 void cell_data::remove_at(index_t position)
@@ -39,50 +37,48 @@ void cell_data::remove_at(index_t position)
 	if (position >= cells_count)
 		return;
 
+	using storage = physicore::base_agent_data;
+
 	const index_t last = cells_count - 1;
 	if (position != last)
 	{
-		agent_radius[position] = agent_radius[last];
-		is_movable[position] = is_movable[last];
-		is_motile[position] = is_motile[last];
+		storage::move_scalar(&agent_radius[position], &agent_radius[last]);
+		storage::move_scalar(&is_movable[position], &is_movable[last]);
+		storage::move_scalar(&is_motile[position], &is_motile[last]);
 
-		migration_speeds[position] = migration_speeds[last];
-		migration_biases[position] = migration_biases[last];
-		persistence_times[position] = persistence_times[last];
-		agent_counts[position] = agent_counts[last];
-		pressures[position] = pressures[last];
+		storage::move_scalar(&migration_speeds[position], &migration_speeds[last]);
+		storage::move_scalar(&migration_biases[position], &migration_biases[last]);
+		storage::move_vector(&migration_bias_directions[position * dims], &migration_bias_directions[last * dims],
+							 dims);
+		storage::move_scalar(&persistence_times[position], &persistence_times[last]);
+		storage::move_vector(&motility_directions[position * dims], &motility_directions[last * dims], dims);
 
-		const auto width = static_cast<std::size_t>(dims);
-		const auto destination = static_cast<std::size_t>(position) * width;
-		const auto source = static_cast<std::size_t>(last) * width;
-		std::copy_n(migration_bias_directions.begin() + source, width, migration_bias_directions.begin() + destination);
-		std::copy_n(motility_directions.begin() + source, width, motility_directions.begin() + destination);
-		std::copy_n(positions.begin() + source, width, positions.begin() + destination);
-		std::copy_n(velocities.begin() + source, width, velocities.begin() + destination);
+		storage::move_vector(&positions[position * dims], &positions[last * dims], dims);
+		storage::move_vector(&velocities[position * dims], &velocities[last * dims], dims);
+		storage::move_scalar(&agent_counts[position], &agent_counts[last]);
+		storage::move_scalar(&pressures[position], &pressures[last]);
 
 		neighbor_cells[position] = std::move(neighbor_cells[last]);
 	}
 
 	cells_count = last;
-	const std::size_t count = static_cast<std::size_t>(cells_count);
-	const std::size_t vector_size = count * static_cast<std::size_t>(dims);
 
-	agent_radius.resize(count);
-	is_movable.resize(count);
-	is_motile.resize(count);
+	agent_radius.resize(cells_count);
+	is_movable.resize(cells_count);
+	is_motile.resize(cells_count);
 
-	migration_speeds.resize(count);
-	migration_biases.resize(count);
-	migration_bias_directions.resize(vector_size);
-	persistence_times.resize(count);
-	motility_directions.resize(vector_size);
+	migration_speeds.resize(cells_count);
+	migration_biases.resize(cells_count);
+	migration_bias_directions.resize(cells_count * dims);
+	persistence_times.resize(cells_count);
+	motility_directions.resize(cells_count * dims);
 
-	positions.resize(vector_size);
-	velocities.resize(vector_size);
-	agent_counts.resize(count);
-	pressures.resize(count);
+	positions.resize(cells_count * dims);
+	velocities.resize(cells_count * dims);
+	agent_counts.resize(cells_count);
+	pressures.resize(cells_count);
 
-	neighbor_cells.resize(count);
+	neighbor_cells.resize(cells_count);
 }
 
 } // namespace physicore::mechanics::micromechanics

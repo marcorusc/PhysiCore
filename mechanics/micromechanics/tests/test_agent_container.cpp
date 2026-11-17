@@ -66,7 +66,7 @@ TEST(AgentContainerTest, ViewsShareOneSetOfAgents)
 {
 	auto container = make_agent_container();
 
-	agent_container_ptr mechanics_view = container;
+	const agent_container_ptr mechanics_view = container;
 	physicore::generic_agent_interface_container<base_agent_interface>& base_view = *container;
 
 	auto* created = mechanics_view->create();
