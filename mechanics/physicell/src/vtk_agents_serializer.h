@@ -9,11 +9,11 @@
 
 #include <common/generic_agent_solver.h>
 #include <common/types.h>
+#include <common/vtk_serializer_base.h>
 
 #include "environment.h"
 #include "mechanical_agent.h"
 #include "serializer.h"
-#include "vtk_serializer_base.h"
 
 namespace physicore::mechanics::physicell {
 

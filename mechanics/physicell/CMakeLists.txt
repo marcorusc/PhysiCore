@@ -25,7 +25,7 @@ target_sources(
           src/config_reader.cpp
           src/mechanical_agent_data.cpp
           src/mechanical_agent.cpp
-          src/vtk_serializer_base.cpp
+          ${PROJECT_SOURCE_DIR}/common/src/vtk_serializer_base.cpp
           src/vtk_agents_serializer.cpp
           src/solver_registry.cpp
   PUBLIC
