@@ -1,4 +1,4 @@
-set(ALL_EXAMPLES potential_curve)
+set(ALL_EXAMPLES potential_curve two_cells)
 
 foreach(example ${ALL_EXAMPLES})
   add_executable(mechanics.micromechanics.${example} ${example}.cpp)

@@ -84,10 +84,12 @@ inline real_t total_energy(environment& env)
 }
 
 // One cell of 27 sub-agents on a 3 x 3 x 3 lattice with the given spacing, each displaced by up to
-// +-jitter along every axis. The seed is fixed, so the configuration is the same on every run.
-inline void add_jittered_lattice_cell(environment& env, real_t spacing, real_t jitter)
+// +-jitter along every axis. The lattice starts at x = x_offset. The seed is fixed, so the configuration
+// is the same on every run.
+inline void add_jittered_lattice_cell(environment& env, real_t spacing, real_t jitter, real_t x_offset = 0.0,
+									  unsigned seed = 42)
 {
-	std::mt19937 generator(42);
+	std::mt19937 generator(seed);
 	std::uniform_real_distribution<real_t> displacement(-jitter, jitter);
 
 	env.create_cell();
@@ -100,7 +102,7 @@ inline void add_jittered_lattice_cell(environment& env, real_t spacing, real_t j
 			for (int z = 0; z < 3; ++z)
 			{
 				add_agent(env, cell_index,
-						  { x * spacing + displacement(generator), y * spacing + displacement(generator),
+						  { x_offset + x * spacing + displacement(generator), y * spacing + displacement(generator),
 							z * spacing + displacement(generator) });
 			}
 		}
