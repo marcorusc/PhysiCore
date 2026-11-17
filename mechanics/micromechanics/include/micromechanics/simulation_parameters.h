@@ -13,7 +13,8 @@ namespace physicore::mechanics::micromechanics {
  * shape and differ only in the well depth. The intra-cellular well must be the deeper one for a
  * cell to keep its integrity (Newman, Math. Biosci. Eng. 2005).
  *
- * steepness and cutoff_factor default to the values of SEM2 (Chattaraj et al. 2023, Table I).
+ * steepness defaults to the value used by Sandersius and Newman (2008) and SEM2 (Chattaraj et al.
+ * 2023, Table I); cutoff_factor to the SEM2 value.
  * The other defaults are unit values in arbitrary units, not a calibrated cell.
  */
 struct simulation_parameters

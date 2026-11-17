@@ -13,9 +13,9 @@ namespace physicore::mechanics::micromechanics {
  *
  *     V(r) = well_depth * (t^2 - 2 t)        for r < cutoff_distance, 0 otherwise
  *
- * (SEM2, Chattaraj et al., APL Bioeng. 2023, Eq. 2 with alpha = 2). The minimum is at
+ * (Sandersius and Newman, Phys. Biol. 5 (2008) 015002, Eq. 4). The minimum is at
  * r = equilibrium_distance with V = -well_depth, and the stiffness there is
- * V'' = 8 * well_depth * steepness^2 / equilibrium_distance^2.
+ * V'' = 8 * well_depth * steepness^2 / equilibrium_distance^2 (Eq. 5 of the same paper).
  *
  * The potential is not shifted at the cutoff; with the default parameters the jump is below
  * 1e-4 * well_depth.

@@ -18,8 +18,16 @@ target_sources(
 
 target_link_libraries(mechanics.micromechanics_internal_iface INTERFACE common)
 
+add_library(mechanics.micromechanics_iface INTERFACE)
+target_include_directories(
+  mechanics.micromechanics_iface
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_link_libraries(mechanics.micromechanics_iface INTERFACE common)
+
 target_link_libraries(mechanics.micromechanics
                       PRIVATE mechanics.micromechanics_internal_iface)
+
+add_subdirectory(kernels/openmp_solver)
 
 if(PHYSICORE_BUILD_EXAMPLES)
   add_subdirectory(examples)

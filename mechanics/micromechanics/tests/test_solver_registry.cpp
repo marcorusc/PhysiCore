@@ -28,4 +28,9 @@ TEST(SolverRegistryTest, RegisteredSolverCanBeInstantiated)
 	EXPECT_NE(dynamic_cast<registered_test_solver*>(instance.get()), nullptr);
 }
 
+TEST(SolverRegistryTest, OpenMPSolverIsRegistered)
+{
+	EXPECT_NE(solver_registry::instance().get("openmp_solver"), nullptr);
+}
+
 } // namespace physicore::mechanics::micromechanics::tests
