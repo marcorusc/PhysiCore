@@ -126,7 +126,7 @@ agent_interface* environment::grow_cell(index_t cell_index)
 
 	const index_t dims = mesh.dims;
 	const std::uint64_t seed = mix(params.random_seed ^ growth_stream);
-	const index_t event = growth_events++;
+	const index_t growth_step = growth_events++;
 
 	std::array<real_t, 3> best_position {};
 	{
@@ -144,13 +144,13 @@ agent_interface* environment::grow_cell(index_t cell_index)
 		for (index_t trial = 0; trial < growth_candidates && !members.empty(); ++trial)
 		{
 			// one equilibrium distance from a random sub-agent of the cell, in a random direction
-			const index_t anchor = members[random_bits(seed, event, trial, dims, 0) % members.size()];
+			const index_t anchor = members[random_bits(seed, growth_step, trial, dims, 0) % members.size()];
 
 			std::array<real_t, 3> direction {};
 			real_t squared_length = 0.0;
 			for (index_t d = 0; d < dims; ++d)
 			{
-				direction.at(d) = standard_normal(seed, event, trial, d);
+				direction.at(d) = standard_normal(seed, growth_step, trial, d);
 				squared_length += direction.at(d) * direction.at(d);
 			}
 			if (squared_length == 0.0)
