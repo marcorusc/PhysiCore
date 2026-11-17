@@ -2,6 +2,7 @@
 
 #include <array>
 
+#include <micromechanics/domain_wall.h>
 #include <micromechanics/pair_potential.h>
 
 #include "parallel_threshold.h"
@@ -81,6 +82,36 @@ void force_solver::compute(environment& e)
 			forces[i * dims + d] = net_force[d];
 		}
 	}
+
+	add_wall_forces(e);
+}
+
+void force_solver::add_wall_forces(environment& e)
+{
+	if (!e.params.domain_walls)
+	{
+		return;
+	}
+
+	const agent_data& data = retrieve_agent_data(*e.agents);
+	const index_t agents_count = data.agents_count;
+	const index_t dims = data.base_data.dims;
+	const pair_potential wall = e.params.wall_potential();
+	const cartesian_mesh& mesh = e.mesh;
+
+	const real_t* positions = data.base_data.positions.data();
+	real_t* forces = forces_.data();
+
+#pragma omp parallel for if (agents_count >= parallel_threshold)
+	for (index_t i = 0; i < agents_count; ++i)
+	{
+		for (index_t d = 0; d < dims; ++d)
+		{
+			forces[i * dims + d] +=
+				wall_force(wall, positions[i * dims + d], static_cast<real_t>(mesh.bounding_box_mins.at(d)),
+						   static_cast<real_t>(mesh.bounding_box_maxs.at(d)));
+		}
+	}
 }
 
 void force_solver::compute_brute_force(environment& e)
@@ -112,6 +143,8 @@ void force_solver::compute_brute_force(environment& e)
 			forces[i * dims + d] = net_force[d];
 		}
 	}
+
+	add_wall_forces(e);
 }
 
 } // namespace physicore::mechanics::micromechanics::kernels::openmp_solver

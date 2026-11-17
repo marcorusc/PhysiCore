@@ -18,7 +18,13 @@ class openmp_solver : public solver
 	cell_solver cells;
 	pressure_solver pressures;
 
+	// Throws std::invalid_argument if the domain has walls and a sub-agent is outside it
+	static void check_domain(environment& e);
+
 public:
+	// Number of times a sub-agent had to be put back on a wall of the domain (see position_solver)
+	index_t wall_stops() const { return positions.wall_stops(); }
+
 	// Checks the motility parameters and brings the cell-level quantities in line with the sub-agents
 	void initialize(environment& e) override;
 

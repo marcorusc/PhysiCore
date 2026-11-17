@@ -1,4 +1,5 @@
 set(ALL_EXAMPLES
+    domain_walls
     growth_division
     motility
     potential_curve

@@ -47,9 +47,25 @@ struct simulation_parameters
 	// Seed of the noise. The same seed gives the same simulation, bit for bit.
 	std::uint64_t random_seed = 0;
 
+	// Walls at the faces of the domain (the bounding box of the mesh) that push elements back in, see
+	// domain_wall.h. Off by default: elements then move freely and the size of the domain plays no role.
+	bool domain_walls = false;
+
+	// Well depth of the potential between an element and its mirror image behind a wall. The default
+	// is that of two elements of different cells.
+	real_t wall_well_depth = 0.5;
+
 	pair_potential intra_potential() const
 	{
 		return { .well_depth = intra_well_depth,
+				 .equilibrium_distance = equilibrium_distance,
+				 .steepness = steepness,
+				 .cutoff_distance = cutoff_factor * equilibrium_distance };
+	}
+
+	pair_potential wall_potential() const
+	{
+		return { .well_depth = wall_well_depth,
 				 .equilibrium_distance = equilibrium_distance,
 				 .steepness = steepness,
 				 .cutoff_distance = cutoff_factor * equilibrium_distance };

@@ -12,7 +12,7 @@
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
 
 /**
- * @brief Net pair force on every sub-agent.
+ * @brief Net force on every sub-agent: the pair forces and, if the domain has walls, the wall force.
  *
  * compute() finds interaction partners through a uniform grid, so its cost grows linearly with the
  * number of sub-agents at fixed density. compute_brute_force() visits every pair and is the reference
@@ -26,6 +26,9 @@ class force_solver : private generic_agent_solver<agent>
 {
 	std::vector<real_t> forces_;
 	neighbor_grid grid_;
+
+	// Adds the force of the domain walls, if they are on
+	void add_wall_forces(environment& e);
 
 public:
 	// Recomputes the forces from the current positions
