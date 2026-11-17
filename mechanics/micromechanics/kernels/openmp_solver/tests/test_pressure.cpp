@@ -320,16 +320,17 @@ TEST(PressureTest, SolverKeepsThePressureUpToDate)
 
 TEST(PressureTest, CellsCrawlingAgainstEachOtherAreCompressedByTheirTraction)
 {
-	// Two motile cells driven head-on stall against each other (see the motility tests). Each is then
-	// pressed by the other with its total traction N * drag * speed, acting where they touch, about
-	// half the centre distance from each centre. The virial of that is traction * lever arm.
+	// Two motile cells driven head-on along a line stall against each other (see the motility tests).
+	// Each is then pressed by the other with its total traction N * drag * speed, acting on its last
+	// sub-agent. The virial of that is the traction times the distance of that sub-agent from the
+	// centre of its cell.
 	const real_t speed = 0.2;
-	const index_t elements = 13;
+	const index_t elements = 5;
 
-	environment env = make_environment(3, 0.002);
+	environment env = make_environment(1, 0.002);
 	for (const real_t side : { -1.0, 1.0 })
 	{
-		const std::array<real_t, 3> centre = { 2.0 * side, 0.0, 0.0 };
+		const std::array<real_t, 1> centre = { 5.0 * side };
 		auto* cell = env.create_cell(centre, elements);
 		cell->is_motile() = 1;
 		cell->migration_speed() = speed;
@@ -342,17 +343,25 @@ TEST(PressureTest, CellsCrawlingAgainstEachOtherAreCompressedByTheirTraction)
 
 	openmp_solver solver;
 	solver.initialize(env);
-	solver.solve(env, 15000);
+	solver.solve(env, 20000);
+	ASSERT_NEAR(left->velocity()[0], 0.0, 0.002);
+
+	real_t rightmost_of_left = -1e30;
+	for (index_t i = 0; i < env.agents->size(); ++i)
+	{
+		auto* element = env.agents->get_agent_at(i);
+		if (element->cell_index() == 0)
+			rightmost_of_left = std::max(rightmost_of_left, element->position()[0]);
+	}
 
 	const real_t traction = static_cast<real_t>(elements) * env.params.drag_coefficient * speed;
-	const real_t lever_arm = 0.5 * (right->position()[0] - left->position()[0]);
-	const real_t volume = static_cast<real_t>(elements) * element_volume(3);
-	const real_t estimate = traction * lever_arm / (3.0 * volume);
+	const real_t lever_arm = rightmost_of_left - left->position()[0];
+	const real_t volume = static_cast<real_t>(elements) * element_volume(1);
+	const real_t estimate = traction * lever_arm / (1.0 * volume);
 
 	EXPECT_GT(left->pressure(), 0.0);
-	// The estimate treats the contact as one point on the axis. The sub-agents in contact are spread
-	// around it, which changes the lever arm by a few tens of percent.
-	EXPECT_NEAR(left->pressure(), estimate, 0.4 * estimate);
+	// not exact: the second sub-agent from the end is also in reach of the other cell and is pulled by it
+	EXPECT_NEAR(left->pressure(), estimate, 0.1 * estimate);
 	EXPECT_NEAR(left->pressure(), right->pressure(), 1e-6 * left->pressure());
 }
 

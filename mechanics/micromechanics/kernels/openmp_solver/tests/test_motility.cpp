@@ -505,18 +505,23 @@ TEST(MotilityTest, WalkDoesNotDependOnTheNumberOfThreads)
 
 // ------------------------------------------------------------------------------------ two cells
 
-TEST(MotilityTest, TwoCellsCrawlingHeadOnStallAgainstEachOther)
+TEST(MotilityTest, TwoCellsCrawlingHeadOnAlongALineStallAgainstEachOther)
 {
 	// Each sub-agent is pushed with the force drag_coefficient * migration_speed. The cells stop where
 	// the repulsion between them balances that push.
+	//
+	// The cells are on a line (one dimension), where they cannot get past each other. In two or three
+	// dimensions the head-on position is an unstable balance: the smallest sideways offset grows and
+	// the cells slide past each other, so whether they stay jammed depends on rounding.
 	const real_t speed = 0.2;
 	const real_t timestep = 0.002;
+	const index_t elements = 5;
 
-	environment env = make_environment(3, timestep);
+	environment env = make_environment(1, timestep);
 	for (const real_t side : { -1.0, 1.0 })
 	{
-		const std::array<real_t, 3> centre = { 2.0 * side, 0.0, 0.0 };
-		auto* cell = env.create_cell(centre, 13);
+		const std::array<real_t, 1> centre = { 5.0 * side };
+		auto* cell = env.create_cell(centre, elements);
 		cell->is_motile() = 1;
 		cell->migration_speed() = speed;
 		cell->persistence_time() = 1.0;
@@ -528,37 +533,40 @@ TEST(MotilityTest, TwoCellsCrawlingHeadOnStallAgainstEachOther)
 
 	openmp_solver solver;
 	solver.initialize(env);
-	const auto centre_before = centre_of_mass(env);
+	const real_t centre_before = centre_of_mass(env)[0];
 	const real_t separation_before = right->position()[0] - left->position()[0];
 
 	// they first approach at the migration speed
 	solver.solve(env, 50);
-	EXPECT_GT(left->velocity()[0], 0.5 * speed);
-	EXPECT_LT(right->velocity()[0], -0.5 * speed);
+	EXPECT_NEAR(left->velocity()[0], speed, 0.05 * speed);
+	EXPECT_NEAR(right->velocity()[0], -speed, 0.05 * speed);
 
-	solver.solve(env, 15000);
+	solver.solve(env, 20000);
 
 	// stalled: both cells are at rest although they keep pushing
-	for (auto* cell : { left, right })
-	{
-		for (std::size_t d = 0; d < 3; ++d)
-		{
-			EXPECT_NEAR(cell->velocity()[d], 0.0, 0.01 * speed) << "axis " << d;
-		}
-	}
+	EXPECT_NEAR(left->velocity()[0], 0.0, 0.01 * speed);
+	EXPECT_NEAR(right->velocity()[0], 0.0, 0.01 * speed);
 
-	// closer than at the start, but still two cells side by side and not one on top of the other
-	const real_t separation_after = right->position()[0] - left->position()[0];
-	EXPECT_LT(separation_after, separation_before);
-	EXPECT_GT(separation_after, 1.0);
+	// closer than at the start, and still in the same order: every sub-agent of the left cell is to
+	// the left of every sub-agent of the right cell
+	EXPECT_LT(right->position()[0] - left->position()[0], separation_before);
+	real_t rightmost_of_left = -1e30;
+	real_t leftmost_of_right = 1e30;
+	for (index_t i = 0; i < env.agents->size(); ++i)
+	{
+		auto* element = env.agents->get_agent_at(i);
+		if (element->cell_index() == 0)
+			rightmost_of_left = std::max(rightmost_of_left, element->position()[0]);
+		else
+			leftmost_of_right = std::min(leftmost_of_right, element->position()[0]);
+	}
+	// pressed together: closer than the equilibrium distance, but not through each other
+	EXPECT_GT(leftmost_of_right - rightmost_of_left, 0.5);
+	EXPECT_LT(leftmost_of_right - rightmost_of_left, 1.0);
 
 	// the two pushes are equal and opposite and the forces between sub-agents cancel in pairs, so the
 	// centre of all sub-agents does not move
-	const auto centre_after = centre_of_mass(env);
-	for (std::size_t d = 0; d < 3; ++d)
-	{
-		EXPECT_NEAR(centre_after.at(d), centre_before.at(d), 1e-9) << "axis " << d;
-	}
+	EXPECT_NEAR(centre_of_mass(env)[0], centre_before, 1e-9);
 }
 
 } // namespace physicore::mechanics::micromechanics::kernels::openmp_solver::tests
