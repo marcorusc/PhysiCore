@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+
 #include <common/generic_agent_solver.h>
 #include <common/mesh.h>
 #include <common/timestep_executor.h>
@@ -35,6 +37,10 @@ public:
 	// Its sub-agent radius is half the current equilibrium distance, so sub-agents drawn as
 	// spheres touch at equilibrium. Set params before creating cells.
 	cell_interface* create_cell();
+
+	// Creates a cell of elements_count sub-agents packed around centre without overlaps, one
+	// equilibrium distance apart (see packed_ball_positions). centre holds one value per dimension.
+	cell_interface* create_cell(std::span<const real_t> centre, index_t elements_count);
 
 	// Creates a sub-agent that belongs to the cell at cell_index
 	agent_interface* create_agent(index_t cell_index);
