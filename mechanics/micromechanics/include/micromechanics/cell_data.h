@@ -17,7 +17,6 @@ struct cell_data
 	index_t cells_count = 0;
 	index_t dims;
 
-	std::vector<real_t> agent_radius;
 	std::vector<std::uint8_t> is_movable;
 	std::vector<std::uint8_t> is_motile;
 

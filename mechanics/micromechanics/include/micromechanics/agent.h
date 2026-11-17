@@ -33,7 +33,6 @@ public:
 	index_t& cell_index() override;
 
 	std::span<real_t> velocity() override;
-	std::span<real_t> previous_velocity() override;
 };
 
 #ifdef _MSC_VER

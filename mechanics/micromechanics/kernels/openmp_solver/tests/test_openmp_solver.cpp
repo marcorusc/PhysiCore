@@ -33,7 +33,6 @@ TEST(OpenMPSolverTest, SingleStepIsForwardEuler)
 	EXPECT_DOUBLE_EQ(left->velocity()[0], -expected_velocity);
 	EXPECT_DOUBLE_EQ(right->position()[0], 0.8 + 0.01 * expected_velocity);
 	EXPECT_DOUBLE_EQ(left->position()[0], -0.01 * expected_velocity);
-	EXPECT_DOUBLE_EQ(right->previous_velocity()[0], 0.0);
 	for (const std::size_t d : { 1U, 2U })
 	{
 		EXPECT_DOUBLE_EQ(right->position()[d], 0.0);
@@ -42,7 +41,6 @@ TEST(OpenMPSolverTest, SingleStepIsForwardEuler)
 
 	solver.solve(env, 1);
 
-	EXPECT_DOUBLE_EQ(right->previous_velocity()[0], expected_velocity);
 	// the pair has moved apart, so the repulsion is weaker
 	EXPECT_LT(right->velocity()[0], expected_velocity);
 	EXPECT_GT(right->velocity()[0], 0.0);

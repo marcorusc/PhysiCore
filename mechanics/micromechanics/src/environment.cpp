@@ -44,12 +44,7 @@ void environment::serialize_state(real_t current_time)
 	}
 }
 
-cell_interface* environment::create_cell()
-{
-	auto* new_cell = cells->create();
-	new_cell->agent_radius() = 0.5 * params.equilibrium_distance;
-	return new_cell;
-}
+cell_interface* environment::create_cell() { return cells->create(); }
 
 cell_interface* environment::create_cell(std::span<const real_t> centre, index_t elements_count)
 {
@@ -252,7 +247,6 @@ cell_interface* environment::divide_cell(index_t cell_index, std::span<const rea
 	const index_t daughter_index = cells->size() - 1;
 	auto* parent = cells->get_agent_at(cell_index);
 
-	daughter->agent_radius() = parent->agent_radius();
 	daughter->is_movable() = parent->is_movable();
 	daughter->is_motile() = parent->is_motile();
 	daughter->migration_speed() = parent->migration_speed();

@@ -14,7 +14,6 @@ void expect_sizes(const agent_data& data, index_t count, index_t dims)
 	EXPECT_EQ(data.agents_count, count);
 	EXPECT_EQ(data.cell_indices.size(), count);
 	EXPECT_EQ(data.velocities.size(), count * dims);
-	EXPECT_EQ(data.previous_velocities.size(), count * dims);
 }
 
 void sync_add(base_agent_data& base, agent_data& data)
@@ -49,7 +48,6 @@ TEST_P(AgentDataTest, AddGrowsAllArraysWithDefaults)
 	expect_sizes(data, 2, dims);
 	EXPECT_EQ(data.cell_indices, std::vector<index_t>({ no_cell, no_cell }));
 	EXPECT_EQ(data.velocities, std::vector<real_t>(2 * dims, 0.0));
-	EXPECT_EQ(data.previous_velocities, std::vector<real_t>(2 * dims, 0.0));
 }
 
 TEST_P(AgentDataTest, RemoveMovesLastAgentIntoRemovedSlot)
@@ -65,7 +63,6 @@ TEST_P(AgentDataTest, RemoveMovesLastAgentIntoRemovedSlot)
 		for (index_t d = 0; d < dims; ++d)
 		{
 			data.velocities[i * dims + d] = static_cast<real_t>(100 * i + d);
-			data.previous_velocities[i * dims + d] = static_cast<real_t>(1000 * i + d);
 		}
 	}
 
@@ -77,8 +74,6 @@ TEST_P(AgentDataTest, RemoveMovesLastAgentIntoRemovedSlot)
 	{
 		EXPECT_DOUBLE_EQ(data.velocities[d], static_cast<real_t>(200 + d));
 		EXPECT_DOUBLE_EQ(data.velocities[dims + d], static_cast<real_t>(100 + d));
-		EXPECT_DOUBLE_EQ(data.previous_velocities[d], static_cast<real_t>(2000 + d));
-		EXPECT_DOUBLE_EQ(data.previous_velocities[dims + d], static_cast<real_t>(1000 + d));
 	}
 
 	// removing the last agent moves nothing

@@ -22,14 +22,12 @@ TEST(AgentTest, AccessorsReferenceAgentData)
 	EXPECT_EQ(second.cell_index(), no_cell);
 	ASSERT_EQ(second.position().size(), dims);
 	ASSERT_EQ(second.velocity().size(), dims);
-	ASSERT_EQ(second.previous_velocity().size(), dims);
 
 	second.cell_index() = 7;
 	for (index_t d = 0; d < dims; ++d)
 	{
 		second.position()[d] = static_cast<real_t>(1 + d);
 		second.velocity()[d] = static_cast<real_t>(10 + d);
-		second.previous_velocity()[d] = static_cast<real_t>(20 + d);
 	}
 
 	EXPECT_EQ(data.cell_indices[1], index_t { 7 });
@@ -37,7 +35,6 @@ TEST(AgentTest, AccessorsReferenceAgentData)
 	{
 		EXPECT_DOUBLE_EQ(base.positions[dims + d], static_cast<real_t>(1 + d));
 		EXPECT_DOUBLE_EQ(data.velocities[dims + d], static_cast<real_t>(10 + d));
-		EXPECT_DOUBLE_EQ(data.previous_velocities[dims + d], static_cast<real_t>(20 + d));
 	}
 
 	// the first agent is untouched
@@ -46,7 +43,6 @@ TEST(AgentTest, AccessorsReferenceAgentData)
 	{
 		EXPECT_DOUBLE_EQ(base.positions[d], 0.0);
 		EXPECT_DOUBLE_EQ(data.velocities[d], 0.0);
-		EXPECT_DOUBLE_EQ(data.previous_velocities[d], 0.0);
 	}
 }
 

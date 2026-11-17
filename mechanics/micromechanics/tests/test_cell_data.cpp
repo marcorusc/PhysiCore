@@ -19,7 +19,6 @@ TEST(CellDataTest, AddInitializesAllFields)
 	data.add();
 
 	EXPECT_EQ(data.cells_count, index_t { 1 });
-	EXPECT_EQ(data.agent_radius, std::vector<real_t>({ 1.0 }));
 	EXPECT_EQ(data.is_movable, std::vector<std::uint8_t>({ 1 }));
 	EXPECT_EQ(data.is_motile, std::vector<std::uint8_t>({ 0 }));
 	EXPECT_EQ(data.migration_speeds, std::vector<real_t>({ 0.0 }));
@@ -43,7 +42,6 @@ TEST(CellDataTest, RemoveMovesLastCellIntoRemovedSlot)
 	data.add();
 	data.add();
 
-	data.agent_radius = { 1.0, 2.0, 3.0 };
 	data.is_movable = { 0, 1, 0 };
 	data.is_motile = { 1, 0, 1 };
 	data.migration_speeds = { 0.1, 0.2, 0.3 };
@@ -60,7 +58,6 @@ TEST(CellDataTest, RemoveMovesLastCellIntoRemovedSlot)
 	data.remove_at(1);
 
 	EXPECT_EQ(data.cells_count, index_t { 2 });
-	EXPECT_EQ(data.agent_radius, std::vector<real_t>({ 1.0, 3.0 }));
 	EXPECT_EQ(data.is_movable, std::vector<std::uint8_t>({ 0, 0 }));
 	EXPECT_EQ(data.is_motile, std::vector<std::uint8_t>({ 1, 1 }));
 	EXPECT_EQ(data.migration_speeds, std::vector<real_t>({ 0.1, 0.3 }));

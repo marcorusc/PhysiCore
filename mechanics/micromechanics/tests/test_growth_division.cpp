@@ -194,7 +194,6 @@ TEST(DivisionTest, SymmetricDivisionSplitsTheCellInTwoEqualHalvesWithoutMovingAn
 	environment env = make_environment(3);
 	const std::array<real_t, 3> centre = { 1.0, 2.0, 3.0 };
 	auto* parent = env.create_cell(centre, 200);
-	parent->agent_radius() = 0.4;
 	parent->is_motile() = 1;
 	parent->migration_speed() = 2.5;
 	parent->motility_direction()[1] = 1.0;
@@ -238,7 +237,6 @@ TEST(DivisionTest, SymmetricDivisionSplitsTheCellInTwoEqualHalvesWithoutMovingAn
 	EXPECT_NEAR(daughter->position()[2], 3.0, 0.3);
 
 	// the daughter inherits the properties of the parent
-	EXPECT_DOUBLE_EQ(daughter->agent_radius(), 0.4);
 	EXPECT_EQ(daughter->is_motile(), 1);
 	EXPECT_DOUBLE_EQ(daughter->migration_speed(), 2.5);
 	EXPECT_DOUBLE_EQ(daughter->motility_direction()[1], 1.0);

@@ -18,7 +18,6 @@ TEST_F(CellTest, AccessorsReferenceCellData)
 
 	test_cell.position()[0] = 1.0;
 	test_cell.velocity()[1] = 2.0;
-	test_cell.agent_radius() = 3.0;
 	test_cell.is_movable() = 0;
 	test_cell.is_motile() = 1;
 	test_cell.migration_speed() = 4.0;
@@ -32,7 +31,6 @@ TEST_F(CellTest, AccessorsReferenceCellData)
 
 	EXPECT_DOUBLE_EQ(data.positions[0], 1.0);
 	EXPECT_DOUBLE_EQ(data.velocities[1], 2.0);
-	EXPECT_DOUBLE_EQ(data.agent_radius[0], 3.0);
 	EXPECT_EQ(data.is_movable[0], std::uint8_t { 0 });
 	EXPECT_EQ(data.is_motile[0], std::uint8_t { 1 });
 	EXPECT_DOUBLE_EQ(data.migration_speeds[0], 4.0);

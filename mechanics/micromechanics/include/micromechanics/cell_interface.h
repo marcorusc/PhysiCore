@@ -11,7 +11,6 @@ namespace physicore::mechanics::micromechanics {
 class cell_interface : public virtual base_agent_interface
 {
 public:
-	virtual real_t& agent_radius() = 0;
 	virtual std::uint8_t& is_movable() = 0;
 	virtual std::uint8_t& is_motile() = 0;
 

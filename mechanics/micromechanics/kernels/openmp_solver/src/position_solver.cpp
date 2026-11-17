@@ -30,7 +30,6 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 
 	real_t* positions = data.base_data.positions.data();
 	real_t* velocities = data.velocities.data();
-	real_t* previous_velocities = data.previous_velocities.data();
 	const index_t* cell_indices = data.cell_indices.data();
 	const std::uint8_t* is_movable = cells.is_movable.data();
 	const real_t* force = forces.data();
@@ -45,7 +44,6 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 		{
 			const index_t k = i * dims + d;
 
-			previous_velocities[k] = velocities[k];
 			velocities[k] = movable ? force[k] * inverse_drag : 0.0;
 			positions[k] += velocities[k] * timestep;
 

@@ -167,7 +167,6 @@ TEST(CellPlacementTest, EnvironmentCreatesAPackedCellAroundACentre)
 	ASSERT_EQ(env.cells->size(), 2U);
 	ASSERT_EQ(env.agents->size(), 13U);
 	EXPECT_EQ(cell->agent_count(), index_t { 13 });
-	EXPECT_DOUBLE_EQ(cell->agent_radius(), 1.0);
 
 	// the first sub-agent sits on the centre, the other twelve one equilibrium distance away
 	for (index_t i = 0; i < 13; ++i)

@@ -22,7 +22,6 @@ public:
 
 	std::span<real_t> position() override;
 
-	real_t& agent_radius() override;
 	std::uint8_t& is_movable() override;
 	std::uint8_t& is_motile() override;
 

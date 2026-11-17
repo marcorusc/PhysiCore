@@ -109,18 +109,6 @@ TEST(EnvironmentTest, CreateAgentAssignsCellAndCountsIt)
 	EXPECT_EQ(env.agents->size(), 3U);
 }
 
-TEST(EnvironmentTest, NewCellsTakeTheirSubAgentRadiusFromTheEquilibriumDistance)
-{
-	environment env = make_environment();
-
-	EXPECT_DOUBLE_EQ(env.create_cell()->agent_radius(), 0.5);
-
-	env.params.equilibrium_distance = 2.85;
-	EXPECT_DOUBLE_EQ(env.create_cell()->agent_radius(), 1.425);
-	// cells that already exist keep their value
-	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(0)->agent_radius(), 0.5);
-}
-
 TEST(EnvironmentTest, RemoveAgentUpdatesCellCount)
 {
 	environment env = make_environment();
@@ -149,7 +137,7 @@ TEST(EnvironmentTest, RemoveCellRemovesItsAgentsAndRelinksMovedCell)
 	// three cells with 2, 1 and 3 sub-agents, created interleaved
 	for (index_t i = 0; i < 3; ++i)
 	{
-		env.create_cell()->agent_radius() = static_cast<real_t>(i + 1);
+		env.create_cell()->migration_speed() = static_cast<real_t>(i + 1);
 	}
 	for (const index_t cell_index : { 0, 2, 1, 2, 0, 2 })
 	{
@@ -158,10 +146,10 @@ TEST(EnvironmentTest, RemoveCellRemovesItsAgentsAndRelinksMovedCell)
 
 	env.remove_cell(0);
 
-	// cell 2 (radius 3) moved to index 0; cell 1 stays
+	// cell 2 (migration speed 3) moved to index 0; cell 1 stays
 	ASSERT_EQ(env.cells->size(), 2U);
-	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(0)->agent_radius(), 3.0);
-	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(1)->agent_radius(), 2.0);
+	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(0)->migration_speed(), 3.0);
+	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(1)->migration_speed(), 2.0);
 	EXPECT_EQ(cell_agent_counts(env), std::vector<index_t>({ 3, 1 }));
 
 	// only the sub-agents of the removed cell are gone and every survivor points at its own cell

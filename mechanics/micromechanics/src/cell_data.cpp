@@ -13,7 +13,6 @@ void cell_data::add()
 {
 	++cells_count;
 
-	agent_radius.resize(cells_count, 1.0);
 	is_movable.resize(cells_count, 1);
 	is_motile.resize(cells_count, 0);
 
@@ -42,7 +41,6 @@ void cell_data::remove_at(index_t position)
 	const index_t last = cells_count - 1;
 	if (position != last)
 	{
-		storage::move_scalar(&agent_radius[position], &agent_radius[last]);
 		storage::move_scalar(&is_movable[position], &is_movable[last]);
 		storage::move_scalar(&is_motile[position], &is_motile[last]);
 
@@ -63,7 +61,6 @@ void cell_data::remove_at(index_t position)
 
 	cells_count = last;
 
-	agent_radius.resize(cells_count);
 	is_movable.resize(cells_count);
 	is_motile.resize(cells_count);
 

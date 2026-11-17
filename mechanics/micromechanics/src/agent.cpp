@@ -23,10 +23,4 @@ std::span<real_t> agent::velocity()
 	return { &data.velocities[this->index * dims], dims };
 }
 
-std::span<real_t> agent::previous_velocity()
-{
-	const index_t dims = data.base_data.dims;
-	return { &data.previous_velocities[this->index * dims], dims };
-}
-
 } // namespace physicore::mechanics::micromechanics

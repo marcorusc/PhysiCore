@@ -21,8 +21,7 @@ struct agent_data
 
 	std::vector<index_t> cell_indices;
 
-	std::vector<real_t> velocities;			 // agents_count * dims
-	std::vector<real_t> previous_velocities; // agents_count * dims
+	std::vector<real_t> velocities; // agents_count * dims
 
 	explicit agent_data(physicore::base_agent_data& base_data);
 
