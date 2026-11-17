@@ -11,7 +11,11 @@ find_package(OpenMP 4)
 
 target_sources(
   mechanics.micromechanics.kernels.openmp_solver
-  PRIVATE src/force_solver.cpp src/openmp_solver.cpp src/position_solver.cpp
+  PRIVATE src/cell_solver.cpp
+          src/force_solver.cpp
+          src/neighbor_grid.cpp
+          src/openmp_solver.cpp
+          src/position_solver.cpp
           src/register_solver.cpp
   PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include")
 

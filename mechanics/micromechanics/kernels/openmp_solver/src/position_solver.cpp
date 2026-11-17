@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstdint>
 
+#include "parallel_threshold.h"
+
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
 
 void position_solver::update(environment& e, std::span<const real_t> forces)
@@ -25,7 +27,7 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 	const std::uint8_t* is_movable = cells.is_movable.data();
 	const real_t* force = forces.data();
 
-#pragma omp parallel for
+#pragma omp parallel for if (agents_count >= parallel_threshold)
 	for (index_t i = 0; i < agents_count; ++i)
 	{
 		const index_t cell_index = cell_indices[i];

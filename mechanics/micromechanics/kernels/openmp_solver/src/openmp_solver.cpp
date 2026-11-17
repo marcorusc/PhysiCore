@@ -2,10 +2,7 @@
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
 
-void openmp_solver::initialize(environment& /* e */)
-{
-	// The reference kernel keeps no state between timesteps.
-}
+void openmp_solver::initialize(environment& e) { cells.update(e); }
 
 void openmp_solver::solve(environment& e, index_t iterations)
 {
@@ -15,6 +12,8 @@ void openmp_solver::solve(environment& e, index_t iterations)
 
 		positions.update(e, forces.forces());
 	}
+
+	cells.update(e);
 }
 
 } // namespace physicore::mechanics::micromechanics::kernels::openmp_solver

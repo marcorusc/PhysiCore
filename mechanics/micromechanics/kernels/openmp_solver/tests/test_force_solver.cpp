@@ -10,6 +10,7 @@
 #endif
 
 #include "force_solver.h"
+#include "parallel_threshold.h"
 #include "test_helpers.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver::tests {
@@ -206,11 +207,70 @@ TEST(ForceSolverTest, NetForceAndNetTorqueVanish)
 	}
 }
 
+class GridForceTest : public ::testing::TestWithParam<index_t>
+{};
+
+INSTANTIATE_TEST_SUITE_P(Dimensions, GridForceTest, ::testing::Values(1, 2, 3));
+
+TEST_P(GridForceTest, GridSearchMatchesBruteForce)
+{
+	const index_t dims = GetParam();
+	const index_t agents_count = 400;
+	const index_t cells_count = 5;
+
+	// about as dense as a packed cell: the box holds roughly one sub-agent per unit volume
+	const real_t box = std::pow(static_cast<real_t>(agents_count), 1.0 / static_cast<real_t>(dims));
+
+	environment env = make_environment(dims);
+	for (index_t i = 0; i < cells_count; ++i)
+	{
+		env.create_cell();
+	}
+
+	std::mt19937 generator(123);
+	std::uniform_real_distribution<real_t> coordinate(-0.5 * box, 0.5 * box);
+	for (index_t i = 0; i < agents_count; ++i)
+	{
+		for (real_t& x : env.create_agent(i % cells_count)->position())
+		{
+			x = coordinate(generator);
+		}
+	}
+
+	force_solver solver;
+	solver.compute(env);
+	const std::vector<real_t> with_grid(solver.forces().begin(), solver.forces().end());
+	solver.compute_brute_force(env);
+	const std::vector<real_t> brute_force(solver.forces().begin(), solver.forces().end());
+
+	ASSERT_EQ(with_grid.size(), agents_count * dims);
+	ASSERT_EQ(brute_force.size(), agents_count * dims);
+
+	real_t largest_force = 0.0;
+	for (std::size_t k = 0; k < brute_force.size(); ++k)
+	{
+		// the two versions add the same terms in a different order
+		EXPECT_NEAR(with_grid[k], brute_force[k], 1e-11 * (1.0 + std::abs(brute_force[k]))) << "component " << k;
+		largest_force = std::max(largest_force, std::abs(brute_force[k]));
+	}
+	ASSERT_GT(largest_force, 1.0);
+}
+
 #ifdef _OPENMP
 TEST(ForceSolverTest, ResultDoesNotDependOnTheNumberOfThreads)
 {
+	// large enough to be computed in parallel
+	const index_t agents_count = 4 * parallel_threshold;
+
 	environment env = make_environment(3);
-	add_jittered_lattice_cell(env, 1.0, 0.2);
+	env.create_cell();
+	env.create_cell();
+	std::mt19937 generator(99);
+	std::uniform_real_distribution<real_t> coordinate(0.0, 10.0);
+	for (index_t i = 0; i < agents_count; ++i)
+	{
+		add_agent(env, i % 2, { coordinate(generator), coordinate(generator), coordinate(generator) });
+	}
 
 	const int original_threads = omp_get_max_threads();
 

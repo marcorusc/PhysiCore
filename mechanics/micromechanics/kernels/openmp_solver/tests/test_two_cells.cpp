@@ -148,7 +148,7 @@ TEST(TwoCellsTest, WithoutInterCellularWellCellsIgnoreEachOther)
 	const auto positions_alone = positions_of(alone);
 	for (std::size_t k = 0; k < positions_alone.size(); ++k)
 	{
-		EXPECT_DOUBLE_EQ(positions_of_both[k], positions_alone[k]);
+		EXPECT_NEAR(positions_of_both[k], positions_alone[k], 1e-10);
 	}
 }
 
