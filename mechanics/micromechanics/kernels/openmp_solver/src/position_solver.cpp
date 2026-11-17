@@ -1,8 +1,10 @@
 #include "position_solver.h"
 
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 
+#include "counter_random.h"
 #include "parallel_threshold.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
@@ -19,6 +21,11 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 
 	const real_t inverse_drag = 1.0 / e.params.drag_coefficient;
 	const real_t timestep = e.mechanics_timestep;
+
+	const bool noisy = e.params.diffusion_coefficient > 0.0;
+	const real_t noise_amplitude = noisy ? std::sqrt(2.0 * e.params.diffusion_coefficient * timestep) : 0.0;
+	const std::uint64_t seed = e.params.random_seed;
+	const index_t step = step_;
 
 	real_t* positions = data.base_data.positions.data();
 	real_t* velocities = data.velocities.data();
@@ -40,8 +47,15 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 			previous_velocities[k] = velocities[k];
 			velocities[k] = movable ? force[k] * inverse_drag : 0.0;
 			positions[k] += velocities[k] * timestep;
+
+			if (noisy && movable)
+			{
+				positions[k] += noise_amplitude * standard_normal(seed, step, i, d);
+			}
 		}
 	}
+
+	++step_;
 }
 
 } // namespace physicore::mechanics::micromechanics::kernels::openmp_solver

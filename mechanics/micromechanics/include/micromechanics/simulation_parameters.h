@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <common/types.h>
 
 #include "pair_potential.h"
@@ -36,6 +38,14 @@ struct simulation_parameters
 
 	// Interactions are ignored beyond cutoff_factor * equilibrium_distance
 	real_t cutoff_factor = 2.5;
+
+	// Strength D of the thermal noise: a free element diffuses with mean squared displacement
+	// 2 * dims * D * time. Zero switches the noise off and makes the dynamics deterministic.
+	// D * drag_coefficient plays the role of the thermal energy kT.
+	real_t diffusion_coefficient = 0.0;
+
+	// Seed of the noise. The same seed gives the same simulation, bit for bit.
+	std::uint64_t random_seed = 0;
 
 	pair_potential intra_potential() const
 	{
