@@ -113,8 +113,11 @@ std::array<real_t, 3> centre_of(const agent_data& agents, const std::vector<inde
 // Growth uses its own stream of random numbers, unrelated to the one of the thermal noise
 constexpr std::uint64_t growth_stream = 0x67726F7774680000ULL;
 
-// Candidate positions tried for a new sub-agent
-constexpr index_t growth_candidates = 16;
+// Candidate positions tried at most for a new sub-agent
+constexpr index_t growth_candidates = 64;
+
+// A candidate with at least this much room, in equilibrium distances, is taken without looking further
+constexpr real_t enough_room = 0.95;
 } // namespace
 
 agent_interface* environment::grow_cell(index_t cell_index)
@@ -141,7 +144,9 @@ agent_interface* environment::grow_cell(index_t cell_index)
 		}
 
 		real_t best_room = -1.0;
-		for (index_t trial = 0; trial < growth_candidates && !members.empty(); ++trial)
+		const real_t squared_enough_room = std::pow(enough_room * params.equilibrium_distance, 2);
+		for (index_t trial = 0; trial < growth_candidates && !members.empty() && best_room < squared_enough_room;
+			 ++trial)
 		{
 			// one equilibrium distance from a random sub-agent of the cell, in a random direction
 			const index_t anchor = members[random_bits(seed, growth_step, trial, dims, 0) % members.size()];

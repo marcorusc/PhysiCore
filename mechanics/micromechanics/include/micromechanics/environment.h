@@ -46,9 +46,10 @@ public:
 	/**
 	 * @brief Grows the cell at cell_index by one sub-agent.
 	 *
-	 * Several candidate positions are tried, each one equilibrium distance from a randomly chosen
-	 * sub-agent of the cell in a random direction, and the one with the most room around it is used.
-	 * The new sub-agent therefore never starts on top of another one. The random choices depend only
+	 * Candidate positions are tried, each one equilibrium distance from a randomly chosen sub-agent
+	 * of the cell in a random direction, until one has almost a full equilibrium distance of room
+	 * around it; failing that, the one with the most room is used. The new sub-agent therefore never
+	 * starts on top of another one. The random choices depend only
 	 * on params.random_seed and on the number of growth events so far.
 	 *
 	 * Element parameters are not changed: a cell with twice the sub-agents has twice the volume.
