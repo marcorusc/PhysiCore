@@ -6,7 +6,7 @@ file(GLOB PUBLIC_INC "include/micromechanics/*.h")
 target_sources(
   mechanics.micromechanics
   PRIVATE src/agent.cpp src/agent_data.cpp src/cell.cpp src/cell_data.cpp
-          src/environment.cpp
+          src/environment.cpp src/solver_registry.cpp
   PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include" FILES
          ${PUBLIC_INC})
 
