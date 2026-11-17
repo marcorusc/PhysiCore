@@ -6,7 +6,7 @@
 
 #include <common/types.h>
 
-namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
+namespace physicore::mechanics::micromechanics {
 
 /**
  * Counter-based random numbers: a value is a pure function of (seed, step, sub-agent, component) and
@@ -50,4 +50,4 @@ inline real_t standard_normal(std::uint64_t seed, std::uint64_t step, std::uint6
 	return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * std::numbers::pi * u2);
 }
 
-} // namespace physicore::mechanics::micromechanics::kernels::openmp_solver
+} // namespace physicore::mechanics::micromechanics

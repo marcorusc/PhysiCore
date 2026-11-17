@@ -4,8 +4,8 @@
 #include <vector>
 
 #include <gtest/gtest.h>
+#include <micromechanics/counter_random.h>
 
-#include "counter_random.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver::tests {
 

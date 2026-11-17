@@ -4,7 +4,8 @@
 #include <cmath>
 #include <cstdint>
 
-#include "counter_random.h"
+#include <micromechanics/counter_random.h>
+
 #include "parallel_threshold.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
