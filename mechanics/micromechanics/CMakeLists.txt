@@ -21,6 +21,10 @@ target_link_libraries(mechanics.micromechanics_internal_iface INTERFACE common)
 target_link_libraries(mechanics.micromechanics
                       PRIVATE mechanics.micromechanics_internal_iface)
 
+if(PHYSICORE_BUILD_EXAMPLES)
+  add_subdirectory(examples)
+endif()
+
 if(PHYSICORE_BUILD_TESTS)
   add_subdirectory(tests)
 endif()

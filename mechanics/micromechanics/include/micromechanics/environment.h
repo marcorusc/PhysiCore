@@ -8,6 +8,7 @@
 #include "agent_container.h"
 #include "cell_container.h"
 #include "serializer.h"
+#include "simulation_parameters.h"
 #include "solver.h"
 
 namespace physicore::mechanics::micromechanics {
@@ -49,6 +50,7 @@ public:
 
 	real_t mechanics_timestep;
 	cartesian_mesh mesh;
+	simulation_parameters params;
 };
 
 } // namespace physicore::mechanics::micromechanics
