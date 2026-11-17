@@ -4,7 +4,10 @@
 // The outcome depends on the ratio of the inter- to the intra-cellular well depth: the cells ignore
 // each other (0), adhere without mixing (around 0.5) or merge into one aggregate (1).
 //
-// Usage: mechanics.micromechanics.two_cells [inter_to_intra_ratio [end_time [snapshots]]]
+// Usage: mechanics.micromechanics.two_cells [inter_to_intra_ratio [end_time [snapshots [vtk_output_dir]]]]
+//
+// With vtk_output_dir, every snapshot is also written as a VTK file; open
+// <vtk_output_dir>/micromechanics_agents.pvd in ParaView.
 
 #include <cmath>
 #include <cstdlib>
@@ -18,6 +21,7 @@
 
 #include <micromechanics/environment.h>
 #include <micromechanics/solver_registry.h>
+#include <micromechanics/vtk_serializer.h>
 
 using namespace physicore;
 using namespace physicore::mechanics::micromechanics;
@@ -69,12 +73,13 @@ int main(int argc, char** argv)
 	real_t ratio = 0.5;
 	real_t end_time = 10.0;
 	index_t snapshots = 20;
+	std::string vtk_output_dir;
 
 	try
 	{
-		if (args.size() > 4)
+		if (args.size() > 5)
 		{
-			throw std::invalid_argument("expected at most 3 arguments");
+			throw std::invalid_argument("expected at most 4 arguments");
 		}
 		if (args.size() > 1)
 		{
@@ -88,6 +93,10 @@ int main(int argc, char** argv)
 		{
 			snapshots = std::stoull(args[3]);
 		}
+		if (args.size() > 4)
+		{
+			vtk_output_dir = args[4];
+		}
 		if (ratio < 0.0 || end_time <= 0.0 || snapshots == 0)
 		{
 			throw std::invalid_argument("ratio must not be negative; end_time and snapshots must be positive");
@@ -96,7 +105,7 @@ int main(int argc, char** argv)
 	catch (const std::exception& e)
 	{
 		std::cerr << "two_cells: " << e.what() << '\n'
-				  << "usage: " << args[0] << " [inter_to_intra_ratio [end_time [snapshots]]]\n";
+				  << "usage: " << args[0] << " [inter_to_intra_ratio [end_time [snapshots [vtk_output_dir]]]]\n";
 		return EXIT_FAILURE;
 	}
 
@@ -116,6 +125,11 @@ int main(int argc, char** argv)
 	}
 	env.solver->initialize(env);
 
+	if (!vtk_output_dir.empty())
+	{
+		env.serializer = make_vtk_agents_serializer(vtk_output_dir);
+	}
+
 	const auto steps_per_snapshot =
 		static_cast<index_t>(std::llround(end_time / (timestep * static_cast<real_t>(snapshots))));
 
@@ -125,10 +139,13 @@ int main(int argc, char** argv)
 	std::cout << "time,agent,cell,x,y,z\n";
 
 	print_snapshot(env, 0.0);
+	env.serialize_state(0.0);
 	for (index_t snapshot = 1; snapshot <= snapshots; ++snapshot)
 	{
 		env.solver->solve(env, steps_per_snapshot);
-		print_snapshot(env, static_cast<real_t>(snapshot * steps_per_snapshot) * timestep);
+		const real_t time = static_cast<real_t>(snapshot * steps_per_snapshot) * timestep;
+		print_snapshot(env, time);
+		env.serialize_state(time);
 	}
 
 	return EXIT_SUCCESS;
