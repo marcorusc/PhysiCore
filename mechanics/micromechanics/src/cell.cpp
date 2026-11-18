@@ -49,6 +49,8 @@ std::span<real_t> cell::velocity()
 
 index_t cell::agent_count() const { return data.agent_counts[this->index]; }
 
+real_t cell::pressure() const { return data.pressures[this->index]; }
+
 std::span<index_t> cell::neighbors() { return { data.neighbor_cells[this->index] }; }
 
 } // namespace physicore::mechanics::micromechanics

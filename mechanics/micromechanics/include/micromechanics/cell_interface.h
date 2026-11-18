@@ -25,6 +25,9 @@ public:
 
 	virtual std::span<real_t> velocity() = 0;
 	virtual index_t agent_count() const = 0;
+	// Pressure exerted on the cell by its surroundings: positive when compressed, negative when pulled
+	// outwards. Set by the solver from the forces of sub-agents outside the cell.
+	virtual real_t pressure() const = 0;
 
 	virtual std::span<index_t> neighbors() = 0;
 };

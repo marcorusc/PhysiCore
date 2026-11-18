@@ -26,6 +26,7 @@ TEST_F(CellTest, AccessorsReferenceCellData)
 	test_cell.persistence_time() = 7.0;
 	test_cell.motility_direction()[0] = 8.0;
 	data.agent_counts[0] = 9;
+	data.pressures[0] = 10.0;
 	data.neighbor_cells[0] = { 11, 12 };
 
 	EXPECT_DOUBLE_EQ(data.positions[0], 1.0);
@@ -38,10 +39,12 @@ TEST_F(CellTest, AccessorsReferenceCellData)
 	EXPECT_DOUBLE_EQ(data.persistence_times[0], 7.0);
 	EXPECT_DOUBLE_EQ(data.motility_directions[0], 8.0);
 	EXPECT_EQ(data.agent_counts[0], index_t { 9 });
+	EXPECT_DOUBLE_EQ(data.pressures[0], 10.0);
 	ASSERT_EQ(test_cell.neighbors().size(), 2U);
 	EXPECT_EQ(test_cell.neighbors()[0], index_t { 11 });
 	EXPECT_EQ(test_cell.neighbors()[1], index_t { 12 });
 	EXPECT_EQ(test_cell.agent_count(), index_t { 9 });
+	EXPECT_DOUBLE_EQ(test_cell.pressure(), 10.0);
 }
 
 } // namespace physicore::mechanics::micromechanics::tests

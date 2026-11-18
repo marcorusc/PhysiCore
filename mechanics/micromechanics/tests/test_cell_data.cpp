@@ -25,6 +25,7 @@ TEST(CellDataTest, AddInitializesAllFields)
 	EXPECT_EQ(data.migration_biases, std::vector<real_t>({ 0.0 }));
 	EXPECT_EQ(data.persistence_times, std::vector<real_t>({ 0.0 }));
 	EXPECT_EQ(data.agent_counts, std::vector<index_t>({ 0 }));
+	EXPECT_EQ(data.pressures, std::vector<real_t>({ 0.0 }));
 
 	EXPECT_EQ(data.migration_bias_directions, std::vector<real_t>(3, 0.0));
 	EXPECT_EQ(data.motility_directions, std::vector<real_t>(3, 0.0));
@@ -47,6 +48,7 @@ TEST(CellDataTest, RemoveMovesLastCellIntoRemovedSlot)
 	data.migration_biases = { 0.4, 0.5, 0.6 };
 	data.persistence_times = { 1.0, 2.0, 3.0 };
 	data.agent_counts = { 10, 20, 30 };
+	data.pressures = { 4.0, 5.0, 6.0 };
 	data.migration_bias_directions = { 1.0, 1.1, 2.0, 2.1, 3.0, 3.1 };
 	data.motility_directions = { 4.0, 4.1, 5.0, 5.1, 6.0, 6.1 };
 	data.positions = { 7.0, 7.1, 8.0, 8.1, 9.0, 9.1 };
@@ -62,6 +64,7 @@ TEST(CellDataTest, RemoveMovesLastCellIntoRemovedSlot)
 	EXPECT_EQ(data.migration_biases, std::vector<real_t>({ 0.4, 0.6 }));
 	EXPECT_EQ(data.persistence_times, std::vector<real_t>({ 1.0, 3.0 }));
 	EXPECT_EQ(data.agent_counts, std::vector<index_t>({ 10, 30 }));
+	EXPECT_EQ(data.pressures, std::vector<real_t>({ 4.0, 6.0 }));
 	EXPECT_EQ(data.migration_bias_directions, std::vector<real_t>({ 1.0, 1.1, 3.0, 3.1 }));
 	EXPECT_EQ(data.motility_directions, std::vector<real_t>({ 4.0, 4.1, 6.0, 6.1 }));
 	EXPECT_EQ(data.positions, std::vector<real_t>({ 7.0, 7.1, 9.0, 9.1 }));

@@ -34,6 +34,7 @@ public:
 
 	std::span<real_t> velocity() override;
 	index_t agent_count() const override;
+	real_t pressure() const override;
 
 	std::span<index_t> neighbors() override;
 };

@@ -17,6 +17,7 @@ target_sources(
           src/neighbor_grid.cpp
           src/openmp_solver.cpp
           src/position_solver.cpp
+          src/pressure_solver.cpp
           src/register_solver.cpp
   PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include")
 

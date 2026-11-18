@@ -30,6 +30,7 @@ struct cell_data
 	std::vector<real_t> positions;
 	std::vector<real_t> velocities;
 	std::vector<index_t> agent_counts;
+	std::vector<real_t> pressures;
 
 	std::vector<std::vector<index_t>> neighbor_cells;
 };
