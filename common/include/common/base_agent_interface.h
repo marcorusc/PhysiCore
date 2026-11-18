@@ -13,7 +13,8 @@ class generic_agent_interface_container;
 class base_agent_interface
 {
 protected:
-	friend generic_agent_interface_container<base_agent_interface>;
+	template <derived_from_base_agent T>
+	friend class generic_agent_interface_container;
 
 	index_t index;
 

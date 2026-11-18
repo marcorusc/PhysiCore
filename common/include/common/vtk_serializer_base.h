@@ -2,15 +2,23 @@
 
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
 
-#include <common/types.h>
+#include "types.h"
 
-namespace physicore::mechanics::physicell {
+namespace physicore {
 
 using vtkRealArray = std::conditional_t<std::is_same_v<real_t, float>, vtkFloatArray, vtkDoubleArray>;
 
+/**
+ * @brief Bookkeeping shared by all VTK serializers: the output folders and the ParaView collection
+ * (.pvd) file that lists one VTK file per serialized time.
+ *
+ * common itself does not depend on VTK. A module that writes VTK files compiles
+ * common/src/vtk_serializer_base.cpp into its own library and links VTK::IOXML.
+ */
 class vtk_serializer_base
 {
 protected:
@@ -27,4 +35,4 @@ public:
 	vtk_serializer_base(std::string_view output_dir, std::string_view vtks_dir_name, std::string_view pvd_file_name);
 };
 
-} // namespace physicore::mechanics::physicell
+} // namespace physicore
