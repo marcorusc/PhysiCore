@@ -12,7 +12,7 @@
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
 
 /**
- * @brief Net pair force on every sub-agent.
+ * @brief Net force on every sub-agent: the pair forces and, if the domain has walls, the wall force.
  *
  * Which potential acts between two sub-agents depends on their cells and on the types of those cells,
  * see interaction_table in cell_type.h.
@@ -29,6 +29,9 @@ class force_solver : private generic_agent_solver<agent>, private generic_agent_
 {
 	std::vector<real_t> forces_;
 	neighbor_grid grid_;
+
+	// Adds the force of the domain walls, if they are on
+	void add_wall_forces(environment& e);
 
 public:
 	// Recomputes the forces from the current positions

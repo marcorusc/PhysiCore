@@ -25,13 +25,22 @@ namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
  * sub-agent. The direction is chosen by motility_solver.
  *
  * Sub-agents of a cell that is not movable keep their position and get zero velocity.
+ *
+ * If the domain has walls, a sub-agent that ends the step outside the domain is put back on the face
+ * it crossed. The wall force normally keeps sub-agents inside (see domain_wall.h); this is the guard
+ * for a push or a noise kick stronger than the wall. wall_stops() counts how often it was needed.
  */
 class position_solver : private generic_agent_solver<agent>, private generic_agent_solver<cell>
 {
 	// number of updates done so far; together with the seed it identifies the noise of a step
 	index_t step_ = 0;
 
+	index_t wall_stops_ = 0;
+
 public:
+	// Number of times a sub-agent was put back on a wall, summed over all updates and axes
+	index_t wall_stops() const { return wall_stops_; }
+
 	// forces holds agents_count * dims values, laid out like the positions
 	void update(environment& e, std::span<const real_t> forces);
 };
