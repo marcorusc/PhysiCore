@@ -32,6 +32,8 @@ target_link_libraries(mechanics.micromechanics_iface INTERFACE common)
 target_link_libraries(mechanics.micromechanics
                       PRIVATE mechanics.micromechanics_internal_iface)
 
+add_subdirectory(kernels/openmp_solver)
+
 if(PHYSICORE_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
