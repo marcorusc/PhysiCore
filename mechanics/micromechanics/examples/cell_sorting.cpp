@@ -19,11 +19,14 @@
 //   also writes the sub-agents as VTK files for ParaView.
 //
 // Usage: mechanics.micromechanics.cell_sorting [affinity_between_types [end_time [output folder]]]
-//                                              [dims=2] [kT=0] [speed=0.3] [stiffness=1]
+//                                              [dims=2] [kT=0] [speed=0.3] [stiffness=1] [box=...]
 //
 //   dims       2 or 3
 //   kT         thermal energy; compare with the well depths, 1 inside a cell and 0.5 between cells
 //   speed      migration speed of all cells; 0 switches the crawling off
+//   box        half the side of the walled box, a whole number; the default (22 in 2D, 11 in 3D) leaves
+//              the cells much room. A smaller box packs them: the block of cells is then created
+//              with a smaller spacing so that it fits.
 //   stiffness  intra-cellular well depth of both types. The inter-cellular well stays at 0.5, so this
 //              changes how easily a cell deforms without changing how strongly cells stick.
 
@@ -71,6 +74,7 @@ struct options
 	real_t thermal_energy = 0.0;
 	real_t speed = 0.3;
 	real_t stiffness = 1.0;
+	sindex_t half_box = 0; // 0: the default for the dimension
 };
 
 options parse(std::span<char*> args)
@@ -110,6 +114,8 @@ options parse(std::span<char*> args)
 			opts.speed = std::stod(value);
 		else if (key == "stiffness")
 			opts.stiffness = std::stod(value);
+		else if (key == "box")
+			opts.half_box = std::stoll(value);
 		else
 			throw std::invalid_argument("unknown option '" + key + "'");
 	}
@@ -246,8 +252,14 @@ int main(int argc, char** argv)
 		// the block of cells: 6 x 6 cells 5 apart in 2D (a disc of 19 elements reaches 2 from its
 		// centre), 4 x 4 x 4 cells 3.6 apart in 3D (a ball of 19 elements reaches 1.4)
 		const index_t cells_per_side = opts.dims == 2 ? 6 : 4;
-		const real_t cell_spacing = opts.dims == 2 ? 5.0 : 3.6;
-		const sindex_t half_box = opts.dims == 2 ? 22 : 11;
+		const sindex_t default_half_box = opts.dims == 2 ? 22 : 11;
+		const sindex_t half_box = opts.half_box > 0 ? opts.half_box : default_half_box;
+		// in a small box the block is created tighter, so that its outermost elements start about half
+		// an equilibrium distance inside the walls
+		const real_t reach = opts.dims == 2 ? 2.0 : 1.5;
+		const real_t cell_spacing =
+			std::min(opts.dims == 2 ? 5.0 : 3.6,
+					 2.0 * (static_cast<real_t>(half_box) - reach - 0.5) / static_cast<real_t>(cells_per_side - 1));
 
 		// a box with walls, so that the cells stay together
 		environment env(
@@ -317,7 +329,7 @@ int main(int argc, char** argv)
 				  << " dims=" << opts.dims << " thermal_energy=" << opts.thermal_energy
 				  << " migration_speed=" << opts.speed << " persistence_time=" << first.persistence_time
 				  << " intra_well_depth=" << opts.stiffness << " inter_well_depth=" << first.inter_well_depth
-				  << " timestep=" << timestep << '\n';
+				  << " half_box=" << half_box << " cell_spacing=" << cell_spacing << " timestep=" << timestep << '\n';
 		std::cout << "time,unlike_nearest_fraction,contacts,unlike_contacts,"
 					 "unlike_fraction,stray_elements\n";
 
