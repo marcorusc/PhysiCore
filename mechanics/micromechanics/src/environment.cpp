@@ -7,6 +7,7 @@
 
 #include <common/base_agent_data.h>
 
+#include "micromechanics/cell_placement.h"
 
 namespace physicore::mechanics::micromechanics {
 
@@ -51,6 +52,55 @@ cell_interface* environment::create_cell(index_t type_index)
 	}
 	auto* new_cell = cells->create();
 	new_cell->type_index() = type_index;
+	return new_cell;
+}
+
+cell_interface* environment::create_cell(std::span<const real_t> centre, index_t elements_count)
+{
+	return create_cell_of_type(0, centre, elements_count);
+}
+
+cell_interface* environment::create_cell_of_type(index_t type_index, std::span<const real_t> centre)
+{
+	if (type_index >= cell_types.size())
+	{
+		throw std::out_of_range("Invalid cell type index");
+	}
+	return create_cell_of_type(type_index, centre, cell_types[type_index].elements_per_cell);
+}
+
+cell_interface* environment::create_cell_of_type(index_t type_index, std::span<const real_t> centre,
+												 index_t elements_count)
+{
+	if (type_index >= cell_types.size())
+	{
+		throw std::out_of_range("Invalid cell type index");
+	}
+
+	const index_t dims = mesh.dims;
+	if (centre.size() != dims)
+	{
+		throw std::invalid_argument("The centre of a cell needs one value per dimension");
+	}
+
+	const std::vector<real_t> offsets =
+		packed_ball_positions(dims, elements_count, cell_types[type_index].equilibrium_distance);
+
+	auto* new_cell = create_cell(type_index);
+	const index_t cell_index = cells->size() - 1;
+
+	// the cell sits at the centre of mass of its sub-agents
+	std::ranges::copy(centre, new_cell->position().begin());
+	for (index_t i = 0; i < elements_count; ++i)
+	{
+		auto position = create_agent(cell_index)->position();
+		for (index_t d = 0; d < dims; ++d)
+		{
+			position[d] = centre[d] + offsets[i * dims + d];
+			new_cell->position()[d] += offsets[i * dims + d] / static_cast<real_t>(elements_count);
+		}
+	}
+
 	return new_cell;
 }
 
