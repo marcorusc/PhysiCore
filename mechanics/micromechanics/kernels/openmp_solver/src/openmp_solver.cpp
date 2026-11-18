@@ -13,6 +13,7 @@ void openmp_solver::initialize(environment& e)
 	motility.validate(e);
 
 	cells.update(e);
+	pressures.update(e);
 }
 
 void openmp_solver::check_cell_types(environment& e)
@@ -41,6 +42,7 @@ void openmp_solver::solve(environment& e, index_t iterations)
 	}
 
 	cells.update(e);
+	pressures.update(e);
 }
 
 } // namespace physicore::mechanics::micromechanics::kernels::openmp_solver

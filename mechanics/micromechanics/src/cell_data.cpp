@@ -26,6 +26,7 @@ void cell_data::add()
 	positions.resize(cells_count * dims, 0.0);
 	velocities.resize(cells_count * dims, 0.0);
 	agent_counts.resize(cells_count, 0);
+	pressures.resize(cells_count, 0.0);
 
 	neighbor_cells.resize(cells_count);
 }
@@ -55,6 +56,7 @@ void cell_data::remove_at(index_t position)
 		storage::move_vector(&positions[position * dims], &positions[last * dims], dims);
 		storage::move_vector(&velocities[position * dims], &velocities[last * dims], dims);
 		storage::move_scalar(&agent_counts[position], &agent_counts[last]);
+		storage::move_scalar(&pressures[position], &pressures[last]);
 
 		neighbor_cells[position] = std::move(neighbor_cells[last]);
 	}
@@ -74,6 +76,7 @@ void cell_data::remove_at(index_t position)
 	positions.resize(cells_count * dims);
 	velocities.resize(cells_count * dims);
 	agent_counts.resize(cells_count);
+	pressures.resize(cells_count);
 
 	neighbor_cells.resize(cells_count);
 }

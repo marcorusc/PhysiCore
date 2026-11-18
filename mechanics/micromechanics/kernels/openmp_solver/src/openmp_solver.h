@@ -6,6 +6,7 @@
 #include "force_solver.h"
 #include "motility_solver.h"
 #include "position_solver.h"
+#include "pressure_solver.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
 
@@ -15,6 +16,7 @@ class openmp_solver : public solver
 	force_solver forces;
 	position_solver positions;
 	cell_solver cells;
+	pressure_solver pressures;
 
 	// Throws std::invalid_argument if a cell type has an invalid value or a cell refers to a type
 	// that does not exist
@@ -26,7 +28,7 @@ public:
 	void initialize(environment& e) override;
 
 	// Every iteration chooses the motility directions, computes the forces and moves the sub-agents.
-	// The cell-level quantities are updated once at the end.
+	// The cell-level quantities, the pressure among them, are updated once at the end.
 	void solve(environment& e, index_t iterations) override;
 };
 

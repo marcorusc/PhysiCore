@@ -2,6 +2,7 @@ set(ALL_EXAMPLES
     growth_division
     motility
     potential_curve
+    pressure
     scaled_cell
     thermal_noise
     two_cells)
