@@ -3,12 +3,13 @@
 #include <memory>
 
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 namespace physicore::mechanics::micromechanics {
 
 class environment;
 
-class serializer
+class MICROMECHANICS_EXPORT serializer
 {
 public:
 	serializer() = default;

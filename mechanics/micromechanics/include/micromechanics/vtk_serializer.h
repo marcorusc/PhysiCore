@@ -2,6 +2,8 @@
 
 #include <string_view>
 
+#include <micromechanics/micromechanics_export.h>
+
 #include "serializer.h"
 
 namespace physicore::mechanics::micromechanics {
@@ -17,6 +19,6 @@ namespace physicore::mechanics::micromechanics {
  * - cell_type: index of the type of its cell, -1 if it has no cell
  * - velocity: three components, padded with zeros below three dimensions
  */
-serializer_ptr make_vtk_agents_serializer(std::string_view output_dir);
+MICROMECHANICS_EXPORT serializer_ptr make_vtk_agents_serializer(std::string_view output_dir);
 
 } // namespace physicore::mechanics::micromechanics

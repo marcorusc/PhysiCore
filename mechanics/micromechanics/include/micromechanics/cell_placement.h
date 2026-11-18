@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 namespace physicore::mechanics::micromechanics {
 
@@ -20,6 +21,6 @@ namespace physicore::mechanics::micromechanics {
  * @return count * dims coordinates
  * @throws std::invalid_argument if dims is not 1, 2 or 3, or spacing is not positive
  */
-std::vector<real_t> packed_ball_positions(index_t dims, index_t count, real_t spacing);
+MICROMECHANICS_EXPORT std::vector<real_t> packed_ball_positions(index_t dims, index_t count, real_t spacing);
 
 } // namespace physicore::mechanics::micromechanics

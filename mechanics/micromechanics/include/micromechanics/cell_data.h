@@ -4,10 +4,11 @@
 #include <vector>
 
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 namespace physicore::mechanics::micromechanics {
 
-struct cell_data
+struct MICROMECHANICS_EXPORT cell_data
 {
 	explicit cell_data(index_t dims);
 

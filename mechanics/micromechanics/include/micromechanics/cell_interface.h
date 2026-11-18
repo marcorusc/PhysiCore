@@ -5,10 +5,11 @@
 
 #include <common/base_agent_interface.h>
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 namespace physicore::mechanics::micromechanics {
 
-class cell_interface : public virtual base_agent_interface
+class MICROMECHANICS_EXPORT cell_interface : public virtual base_agent_interface
 {
 public:
 	// Index of the cell's type in environment::cell_types
