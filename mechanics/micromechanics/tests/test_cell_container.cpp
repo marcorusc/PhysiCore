@@ -21,13 +21,13 @@ TEST(CellContainerTest, CreateAndAccessCells)
 	ASSERT_NE(cell1, nullptr);
 	EXPECT_EQ(container.size(), 2U);
 
-	cell0->migration_speed() = 1.5;
-	cell1->migration_speed() = 2.5;
+	cell0->velocity()[0] = 1.5;
+	cell1->velocity()[0] = 2.5;
 
 	EXPECT_EQ(container.get_agent_at(0), cell0);
 	EXPECT_EQ(container.get_agent_at(1), cell1);
-	EXPECT_DOUBLE_EQ(container.get_agent_at(0)->migration_speed(), 1.5);
-	EXPECT_DOUBLE_EQ(container.get_agent_at(1)->migration_speed(), 2.5);
+	EXPECT_DOUBLE_EQ(container.get_agent_at(0)->velocity()[0], 1.5);
+	EXPECT_DOUBLE_EQ(container.get_agent_at(1)->velocity()[0], 2.5);
 }
 
 TEST(CellContainerTest, RemoveMovesLastCellAndItsData)
@@ -38,9 +38,9 @@ TEST(CellContainerTest, RemoveMovesLastCellAndItsData)
 	auto* removed_cell = container.create();
 	auto* cell2 = container.create();
 
-	cell0->migration_speed() = 1.0;
-	removed_cell->migration_speed() = 2.0;
-	cell2->migration_speed() = 3.0;
+	cell0->velocity()[0] = 1.0;
+	removed_cell->velocity()[0] = 2.0;
+	cell2->velocity()[0] = 3.0;
 	cell2->position()[0] = 4.0;
 
 	container.remove_agent(removed_cell);
@@ -48,7 +48,7 @@ TEST(CellContainerTest, RemoveMovesLastCellAndItsData)
 	ASSERT_EQ(container.size(), 2U);
 	EXPECT_EQ(container.get_agent_at(0), cell0);
 	EXPECT_EQ(container.get_agent_at(1), cell2);
-	EXPECT_DOUBLE_EQ(container.get_agent_at(1)->migration_speed(), 3.0);
+	EXPECT_DOUBLE_EQ(container.get_agent_at(1)->velocity()[0], 3.0);
 	EXPECT_DOUBLE_EQ(container.get_agent_at(1)->position()[0], 4.0);
 }
 

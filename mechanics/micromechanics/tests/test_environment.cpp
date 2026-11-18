@@ -137,7 +137,7 @@ TEST(EnvironmentTest, RemoveCellRemovesItsAgentsAndRelinksMovedCell)
 	// three cells with 2, 1 and 3 sub-agents, created interleaved
 	for (index_t i = 0; i < 3; ++i)
 	{
-		env.create_cell()->migration_speed() = static_cast<real_t>(i + 1);
+		env.create_cell()->position()[0] = static_cast<real_t>(i + 1);
 	}
 	for (const index_t cell_index : { 0, 2, 1, 2, 0, 2 })
 	{
@@ -146,10 +146,10 @@ TEST(EnvironmentTest, RemoveCellRemovesItsAgentsAndRelinksMovedCell)
 
 	env.remove_cell(0);
 
-	// cell 2 (migration speed 3) moved to index 0; cell 1 stays
+	// cell 2 (marked by position 3) moved to index 0; cell 1 stays
 	ASSERT_EQ(env.cells->size(), 2U);
-	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(0)->migration_speed(), 3.0);
-	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(1)->migration_speed(), 2.0);
+	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(0)->position()[0], 3.0);
+	EXPECT_DOUBLE_EQ(env.cells->get_agent_at(1)->position()[0], 2.0);
 	EXPECT_EQ(cell_agent_counts(env), std::vector<index_t>({ 3, 1 }));
 
 	// only the sub-agents of the removed cell are gone and every survivor points at its own cell

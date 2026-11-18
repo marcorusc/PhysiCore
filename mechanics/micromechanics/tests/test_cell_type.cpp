@@ -245,7 +245,18 @@ TEST(CellTypeEnvironmentTest, EnvironmentStartsWithOneDefaultTypeAndCanGetMore)
 	EXPECT_EQ(env.cell_types[1].name, "large");
 }
 
-TEST(CellTypeEnvironmentTest, NewCellTakesTheTypeAndItsMotility)
+TEST(CellTypeEnvironmentTest, NewCellTakesTheTypeItIsCreatedWith)
+{
+	environment env = make_environment();
+	const index_t large_index = env.add_cell_type(two_types()[1]);
+
+	EXPECT_EQ(env.create_cell()->type_index(), index_t { 0 });
+	EXPECT_EQ(env.create_cell(large_index)->type_index(), large_index);
+
+	EXPECT_THROW(env.create_cell(5), std::out_of_range);
+}
+
+TEST(CellTypeEnvironmentTest, NewCellTakesTheMotilityOfItsType)
 {
 	environment env = make_environment();
 	cell_type crawler;
@@ -258,16 +269,12 @@ TEST(CellTypeEnvironmentTest, NewCellTakesTheTypeAndItsMotility)
 	auto* plain = env.create_cell();
 	auto* motile = env.create_cell(crawler_index);
 
-	EXPECT_EQ(plain->type_index(), index_t { 0 });
 	EXPECT_EQ(plain->is_motile(), 0);
 
-	EXPECT_EQ(motile->type_index(), crawler_index);
 	EXPECT_EQ(motile->is_motile(), 1);
 	EXPECT_DOUBLE_EQ(motile->migration_speed(), 0.7);
 	EXPECT_DOUBLE_EQ(motile->persistence_time(), 3.0);
 	EXPECT_DOUBLE_EQ(motile->migration_bias(), 0.25);
-
-	EXPECT_THROW(env.create_cell(5), std::out_of_range);
 }
 
 } // namespace physicore::mechanics::micromechanics::tests

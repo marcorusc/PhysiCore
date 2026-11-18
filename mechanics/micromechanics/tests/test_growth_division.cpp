@@ -194,9 +194,6 @@ TEST(DivisionTest, SymmetricDivisionSplitsTheCellInTwoEqualHalvesWithoutMovingAn
 	environment env = make_environment(3);
 	const std::array<real_t, 3> centre = { 1.0, 2.0, 3.0 };
 	auto* parent = env.create_cell(centre, 200);
-	parent->is_motile() = 1;
-	parent->migration_speed() = 2.5;
-	parent->motility_direction()[1] = 1.0;
 
 	const auto positions_before = positions_of(env);
 	const std::vector<real_t> normal = { 1.0, 0.0, 0.0 };
@@ -235,11 +232,6 @@ TEST(DivisionTest, SymmetricDivisionSplitsTheCellInTwoEqualHalvesWithoutMovingAn
 	EXPECT_NEAR(0.5 * (parent->position()[0] + daughter->position()[0]), centre_of_all, 1e-9);
 	EXPECT_NEAR(parent->position()[1], 2.0, 0.3);
 	EXPECT_NEAR(daughter->position()[2], 3.0, 0.3);
-
-	// the daughter inherits the properties of the parent
-	EXPECT_EQ(daughter->is_motile(), 1);
-	EXPECT_DOUBLE_EQ(daughter->migration_speed(), 2.5);
-	EXPECT_DOUBLE_EQ(daughter->motility_direction()[1], 1.0);
 }
 
 class AsymmetricDivisionTest : public ::testing::TestWithParam<real_t>
@@ -503,6 +495,29 @@ TEST(DivisionTest, DaughterKeepsTheTypeOfTheParent)
 
 	EXPECT_EQ(daughter->type_index(), large_index);
 	EXPECT_EQ(env.cells->get_agent_at(0)->type_index(), large_index);
+}
+
+TEST(DivisionTest, DaughterInheritsTheMotilityOfTheParent)
+{
+	environment env = make_environment(3);
+	const std::array<real_t, 3> centre = { 0.0, 0.0, 0.0 };
+	auto* parent = env.create_cell(centre, 20);
+	parent->is_motile() = 1;
+	parent->migration_speed() = 2.5;
+	parent->migration_bias() = 0.25;
+	parent->persistence_time() = 4.0;
+	parent->migration_bias_direction()[2] = 1.0;
+	parent->motility_direction()[1] = 1.0;
+
+	const std::vector<real_t> normal = { 1.0, 0.0, 0.0 };
+	auto* daughter = env.divide_cell(0, normal);
+
+	EXPECT_EQ(daughter->is_motile(), 1);
+	EXPECT_DOUBLE_EQ(daughter->migration_speed(), 2.5);
+	EXPECT_DOUBLE_EQ(daughter->migration_bias(), 0.25);
+	EXPECT_DOUBLE_EQ(daughter->persistence_time(), 4.0);
+	EXPECT_DOUBLE_EQ(daughter->migration_bias_direction()[2], 1.0);
+	EXPECT_DOUBLE_EQ(daughter->motility_direction()[1], 1.0);
 }
 
 } // namespace physicore::mechanics::micromechanics::tests
