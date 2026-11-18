@@ -6,14 +6,44 @@
 #include <random>
 #include <vector>
 
+#include <micromechanics/cell_type.h>
 #include <micromechanics/environment.h>
 #include <micromechanics/pair_potential.h>
+
+#include "force_solver.h"
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver::tests {
 
 inline environment make_environment(index_t dims, real_t timestep = 0.001)
 {
 	return { { dims, { -100, -100, -100 }, { 100, 100, 100 }, { 20, 20, 20 } }, timestep };
+}
+
+// Net force on every sub-agent, agents_count * dims values
+inline std::vector<real_t> forces_of(environment& env)
+{
+	force_solver forces;
+	forces.compute(env);
+	return { forces.forces().begin(), forces.forces().end() };
+}
+
+// A cell of one sub-agent of the given type on the x axis
+inline cell_interface* add_point_cell(environment& env, index_t type_index, real_t x)
+{
+	auto* cell = env.create_cell(type_index);
+	env.create_agent(env.cells->size() - 1)->position()[0] = x;
+	return cell;
+}
+
+inline real_t x_of(environment& env, index_t agent) { return env.agents->get_agent_at(agent)->position()[0]; }
+
+// A cell type whose elements are twice as large as those of the default type
+inline cell_type large_type()
+{
+	cell_type type;
+	type.name = "large";
+	type.equilibrium_distance = 2.0;
+	return type;
 }
 
 inline agent_interface* add_agent(environment& env, index_t cell_index, std::initializer_list<real_t> position)

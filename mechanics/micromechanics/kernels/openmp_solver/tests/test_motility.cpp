@@ -480,6 +480,58 @@ TEST(MotilityTest, MotilityDoesNotChangeTheThermalNoise)
 	EXPECT_EQ(run(true), run(false));
 }
 
+TEST(MotilityTest, SofterCellIsCompressedMoreThanAStifferOne)
+{
+	// A soft and a stiff cell on a line crawl against each other with the same traction. Both end up
+	// shorter than at rest; the soft one by more.
+	const real_t speed = 0.5;
+	const index_t elements = 6;
+
+	const auto lengths = [&](bool crawling) {
+		environment env = make_environment(1, 0.001);
+		env.cell_types[0].intra_well_depth = 0.5; // soft
+		cell_type stiff;
+		stiff.intra_well_depth = 4.0;
+		const index_t stiff_index = env.add_cell_type(stiff);
+
+		const std::array<index_t, 2> types = { 0, stiff_index };
+		for (std::size_t k = 0; k < 2; ++k)
+		{
+			const real_t side = k == 0 ? -1.0 : 1.0;
+			const std::array<real_t, 1> centre = { 6.0 * side };
+			auto* cell = env.create_cell_of_type(types.at(k), centre, elements);
+			cell->is_motile() = crawling ? 1 : 0;
+			cell->migration_speed() = speed;
+			cell->persistence_time() = 1.0;
+			cell->migration_bias() = 1.0;
+			cell->migration_bias_direction()[0] = -side;
+		}
+
+		openmp_solver solver;
+		solver.initialize(env);
+		solver.solve(env, 40000);
+
+		std::array<real_t, 2> low = { 1e30, 1e30 };
+		std::array<real_t, 2> high = { -1e30, -1e30 };
+		for (index_t i = 0; i < env.agents->size(); ++i)
+		{
+			auto* element = env.agents->get_agent_at(i);
+			low.at(element->cell_index()) = std::min(low.at(element->cell_index()), element->position()[0]);
+			high.at(element->cell_index()) = std::max(high.at(element->cell_index()), element->position()[0]);
+		}
+		return std::array<real_t, 2> { high[0] - low[0], high[1] - low[1] };
+	};
+
+	const auto at_rest = lengths(false);
+	const auto pressed = lengths(true);
+
+	const real_t soft_compression = at_rest[0] - pressed[0];
+	const real_t stiff_compression = at_rest[1] - pressed[1];
+
+	EXPECT_GT(stiff_compression, 0.0);
+	EXPECT_GT(soft_compression, 2.0 * stiff_compression);
+}
+
 #ifdef _OPENMP
 TEST(MotilityTest, WalkDoesNotDependOnTheNumberOfThreads)
 {

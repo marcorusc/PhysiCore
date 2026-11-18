@@ -365,6 +365,116 @@ TEST(PressureTest, CellsCrawlingAgainstEachOtherAreCompressedByTheirTraction)
 	EXPECT_NEAR(left->pressure(), right->pressure(), 1e-6 * left->pressure());
 }
 
+TEST(PressureTest, PressureUsesTheVolumeAndTheWellsOfTheCellsType)
+{
+	// A cell of the large type with elements at -2 and +2, and outside it one element of the default
+	// type 1.2 beyond each of them. The mixed equilibrium distance is 1.5, so they repel.
+	const real_t gap = 1.2;
+	environment env = make_environment(3);
+	const index_t large = env.add_cell_type(large_type());
+
+	env.create_cell(large);
+	env.create_cell(0);
+	env.create_agent(0)->position()[0] = -2.0;
+	env.create_agent(0)->position()[0] = 2.0;
+	env.create_agent(1)->position()[0] = -2.0 - gap;
+	env.create_agent(1)->position()[0] = 2.0 + gap;
+
+	cell_solver cells;
+	cells.update(env);
+	pressure_solver pressures;
+	pressures.update(env);
+
+	const interaction_table table(env.cell_types, env.params);
+	const real_t coefficient = force_coefficient(table.inter(large, 0), gap * gap);
+	ASSERT_GT(coefficient, 0.0);
+
+	// each member is 2 from the centre and is pushed inwards with coefficient * gap; the cell has two
+	// elements of the volume 2^3 / sqrt(2) each
+	const real_t volume = 2.0 * 8.0 / std::numbers::sqrt2;
+	const real_t expected = 2.0 * (2.0 * coefficient * gap) / (3.0 * volume);
+
+	EXPECT_NEAR(env.cells->get_agent_at(0)->pressure(), expected, 1e-12 * expected);
+}
+
+TEST(PressureTest, TypesWithIdenticalValuesBehaveLikeOneType)
+{
+	const auto run = [](bool two_types) {
+		environment env = make_environment(3, 0.002);
+		env.params.thermal_energy = 0.01;
+		env.params.random_seed = 9;
+		if (two_types)
+		{
+			// a second type with the same values. (A type with larger elements, even an unused one, would
+			// widen the bins of the neighbour search and change the order of the sums, and with it the
+			// last digits.)
+			env.add_cell_type(cell_type {});
+		}
+		add_jittered_lattice_cell(env, 1.0, 0.1, 0.0, 42);
+		add_jittered_lattice_cell(env, 1.0, 0.1, 3.3, 43);
+		if (two_types)
+		{
+			env.cells->get_agent_at(1)->type_index() = 1;
+		}
+
+		openmp_solver solver;
+		solver.initialize(env);
+		solver.solve(env, 300);
+
+		std::vector<real_t> result = positions_of(env);
+		result.push_back(env.cells->get_agent_at(0)->pressure());
+		return result;
+	};
+
+	// bitwise identical, not merely close
+	EXPECT_EQ(run(true), run(false));
+}
+
+TEST(PressureTest, CellsWithoutAffinityStillCannotPassThroughEachOther)
+{
+	// Two cells on a line crawl head-on. With the affinity 0 they do not attract at all, but they
+	// must still stop each other.
+	const real_t speed = 0.2;
+	environment env = make_environment(1, 0.002);
+	env.cell_types[0].adhesion_affinities = { 0.0 };
+	for (const real_t side : { -1.0, 1.0 })
+	{
+		const std::array<real_t, 1> centre = { 5.0 * side };
+		auto* cell = env.create_cell(centre, 5);
+		cell->is_motile() = 1;
+		cell->migration_speed() = speed;
+		cell->persistence_time() = 1.0;
+		cell->migration_bias() = 1.0;
+		cell->migration_bias_direction()[0] = -side;
+	}
+
+	openmp_solver solver;
+	solver.initialize(env);
+	solver.solve(env, 20000);
+
+	real_t rightmost_of_left = -1e30;
+	real_t leftmost_of_right = 1e30;
+	for (index_t i = 0; i < env.agents->size(); ++i)
+	{
+		auto* element = env.agents->get_agent_at(i);
+		if (element->cell_index() == 0)
+			rightmost_of_left = std::max(rightmost_of_left, element->position()[0]);
+		else
+			leftmost_of_right = std::min(leftmost_of_right, element->position()[0]);
+	}
+	EXPECT_NEAR(env.cells->get_agent_at(0)->velocity()[0], 0.0, 0.01 * speed);
+	EXPECT_GT(leftmost_of_right - rightmost_of_left, 0.5);
+	EXPECT_LT(leftmost_of_right - rightmost_of_left, 1.0);
+
+	// when they stop crawling they are pushed apart to the equilibrium distance and nothing holds
+	// them together
+	env.cells->get_agent_at(0)->is_motile() = 0;
+	env.cells->get_agent_at(1)->is_motile() = 0;
+	solver.solve(env, 20000);
+
+	EXPECT_NEAR(env.cells->get_agent_at(0)->pressure(), 0.0, 1e-3);
+}
+
 #ifdef _OPENMP
 TEST(PressureTest, DoesNotDependOnTheNumberOfThreads)
 {

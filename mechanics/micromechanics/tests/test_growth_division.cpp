@@ -472,4 +472,37 @@ TEST(LongestAxisTest, DegenerateCellsStillGiveAUnitVector)
 	EXPECT_THROW(env.longest_axis(2), std::out_of_range);
 }
 
+// ---------------------------------------------------------------------------------------- cell types
+
+TEST(GrowthTest, NewSubAgentIsPlacedAtTheSpacingOfTheCellsType)
+{
+	environment env = make_environment(3);
+	cell_type large;
+	large.equilibrium_distance = 3.0;
+	const index_t large_index = env.add_cell_type(large);
+	const std::array<real_t, 3> centre = { 0.0, 0.0, 0.0 };
+	env.create_cell_of_type(large_index, centre, 1);
+
+	const auto position = env.grow_cell(0)->position();
+
+	// one equilibrium distance of the large type from the only other sub-agent
+	EXPECT_NEAR(std::hypot(position[0], position[1], position[2]), 3.0, 1e-12);
+}
+
+TEST(DivisionTest, DaughterKeepsTheTypeOfTheParent)
+{
+	environment env = make_environment(3);
+	cell_type large;
+	large.equilibrium_distance = 3.0;
+	const index_t large_index = env.add_cell_type(large);
+	const std::array<real_t, 3> centre = { 0.0, 0.0, 0.0 };
+	env.create_cell_of_type(large_index, centre, 20);
+
+	const std::vector<real_t> normal = { 1.0, 0.0, 0.0 };
+	auto* daughter = env.divide_cell(0, normal);
+
+	EXPECT_EQ(daughter->type_index(), large_index);
+	EXPECT_EQ(env.cells->get_agent_at(0)->type_index(), large_index);
+}
+
 } // namespace physicore::mechanics::micromechanics::tests

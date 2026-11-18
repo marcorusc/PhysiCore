@@ -293,6 +293,47 @@ TEST(ThermalNoiseTest, CellDiffusesMoreSlowlyThanItsElementsAndStaysIntact)
 	}
 }
 
+TEST(ThermalNoiseTest, EveryTypeDiffusesWithTheThermalEnergyOverItsDrag)
+{
+	const index_t per_type = 3000;
+	const real_t thermal_energy = 0.2;
+	const real_t timestep = 0.01;
+	const index_t steps = 200;
+
+	environment env = make_environment(3, timestep);
+	env.params.thermal_energy = thermal_energy;
+	env.params.random_seed = 21;
+	env.cell_types[0].inter_well_depth = 0.0; // free elements
+	cell_type heavy;
+	heavy.drag_coefficient = 4.0;
+	heavy.inter_well_depth = 0.0;
+	const index_t heavy_index = env.add_cell_type(heavy);
+
+	for (index_t i = 0; i < 2 * per_type; ++i)
+	{
+		add_point_cell(env, i < per_type ? 0 : heavy_index, 10.0 * static_cast<real_t>(i));
+	}
+
+	openmp_solver solver;
+	solver.initialize(env);
+	solver.solve(env, steps);
+
+	std::array<real_t, 2> mean_squared {};
+	const auto positions = positions_of(env);
+	for (index_t i = 0; i < 2 * per_type; ++i)
+	{
+		const real_t dx = positions[3 * i] - 10.0 * static_cast<real_t>(i);
+		mean_squared.at(i < per_type ? 0 : 1) +=
+			(dx * dx + positions[3 * i + 1] * positions[3 * i + 1] + positions[3 * i + 2] * positions[3 * i + 2])
+			/ static_cast<real_t>(per_type);
+	}
+
+	// 2 * dims * D * time with D = thermal_energy / drag; 3000 elements give about 1.5% standard error
+	const real_t time = timestep * static_cast<real_t>(steps);
+	EXPECT_NEAR(mean_squared[0], 6.0 * thermal_energy / 1.0 * time, 0.08 * 6.0 * thermal_energy * time);
+	EXPECT_NEAR(mean_squared[1], 6.0 * thermal_energy / 4.0 * time, 0.08 * 6.0 * thermal_energy / 4.0 * time);
+}
+
 #ifdef _OPENMP
 TEST(ThermalNoiseTest, NoisyRunDoesNotDependOnTheNumberOfThreads)
 {

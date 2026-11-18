@@ -205,4 +205,34 @@ TEST(CellPlacementTest, EnvironmentChecksTheCentre)
 	EXPECT_NEAR(cell->position()[1], 2.0, 1e-12);
 }
 
+TEST(CellPlacementTest, PackedCellUsesTheSpacingAndElementCountOfItsType)
+{
+	environment env({ 3, { -100, -100, -100 }, { 100, 100, 100 }, { 20, 20, 20 } }, 0.1);
+	cell_type large;
+	large.name = "large";
+	large.equilibrium_distance = 3.0;
+	large.elements_per_cell = 13;
+	const index_t large_index = env.add_cell_type(large);
+
+	const std::array<real_t, 3> centre = { 10.0, 0.0, 0.0 };
+	auto* cell = env.create_cell_of_type(large_index, centre);
+
+	ASSERT_EQ(cell->agent_count(), index_t { 13 });
+	EXPECT_EQ(cell->type_index(), large_index);
+
+	// the first sub-agent sits on the centre, the other twelve one equilibrium distance of the type away
+	for (index_t i = 1; i < 13; ++i)
+	{
+		const auto position = env.agents->get_agent_at(i)->position();
+		const real_t distance = std::hypot(position[0] - 10.0, position[1], position[2]);
+		EXPECT_NEAR(distance, 3.0, 1e-12) << "sub-agent " << i;
+	}
+
+	// a number of one's own choosing overrides that of the type
+	EXPECT_EQ(env.create_cell_of_type(large_index, centre, 5)->agent_count(), index_t { 5 });
+
+	EXPECT_THROW(env.create_cell_of_type(5, centre), std::out_of_range);
+	EXPECT_THROW(env.create_cell_of_type(5, centre, 3), std::out_of_range);
+}
+
 } // namespace physicore::mechanics::micromechanics::tests

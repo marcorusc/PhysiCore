@@ -1,4 +1,3 @@
-#include <array>
 #include <cmath>
 #include <stdexcept>
 #include <vector>
@@ -11,7 +10,7 @@
 // A cell type says what the elements of a cell are like and how its cells stick to others. The
 // interaction_table works out, once, the interaction of every pair of types. These tests check the
 // rule for each of the three kinds of pairs, the weighting of the attraction by affinities, and that
-// the environment creates and changes cells according to their type.
+// the environment creates cells of a type.
 
 namespace physicore::mechanics::micromechanics::tests {
 
@@ -269,60 +268,6 @@ TEST(CellTypeEnvironmentTest, NewCellTakesTheTypeAndItsMotility)
 	EXPECT_DOUBLE_EQ(motile->migration_bias(), 0.25);
 
 	EXPECT_THROW(env.create_cell(5), std::out_of_range);
-	const std::array<real_t, 3> centre = { 0.0, 0.0, 0.0 };
-	EXPECT_THROW(env.create_cell_of_type(5, centre), std::out_of_range);
-}
-
-TEST(CellTypeEnvironmentTest, PackedCellUsesTheSpacingAndElementCountOfItsType)
-{
-	environment env = make_environment();
-	cell_type large = two_types()[1]; // elements 3 apart
-	large.elements_per_cell = 13;
-	const index_t large_index = env.add_cell_type(large);
-
-	const std::array<real_t, 3> centre = { 10.0, 0.0, 0.0 };
-	auto* cell = env.create_cell_of_type(large_index, centre);
-
-	ASSERT_EQ(cell->agent_count(), index_t { 13 });
-	EXPECT_EQ(cell->type_index(), large_index);
-
-	// the first sub-agent sits on the centre, the other twelve one equilibrium distance of the type away
-	for (index_t i = 1; i < 13; ++i)
-	{
-		const auto position = env.agents->get_agent_at(i)->position();
-		const real_t distance = std::hypot(position[0] - 10.0, position[1], position[2]);
-		EXPECT_NEAR(distance, 3.0, 1e-12) << "sub-agent " << i;
-	}
-
-	// a number of one's own choosing overrides that of the type
-	EXPECT_EQ(env.create_cell_of_type(large_index, centre, 5)->agent_count(), index_t { 5 });
-}
-
-TEST(CellTypeEnvironmentTest, GrowthPlacesTheNewSubAgentAtTheSpacingOfTheType)
-{
-	environment env = make_environment();
-	const index_t large_index = env.add_cell_type(two_types()[1]);
-	const std::array<real_t, 3> centre = { 0.0, 0.0, 0.0 };
-	env.create_cell_of_type(large_index, centre, 1);
-
-	const auto position = env.grow_cell(0)->position();
-
-	// one equilibrium distance of the large type from the only other sub-agent
-	EXPECT_NEAR(std::hypot(position[0], position[1], position[2]), 3.0, 1e-12);
-}
-
-TEST(CellTypeEnvironmentTest, DaughterKeepsTheTypeOfTheParent)
-{
-	environment env = make_environment();
-	const index_t large_index = env.add_cell_type(two_types()[1]);
-	const std::array<real_t, 3> centre = { 0.0, 0.0, 0.0 };
-	env.create_cell_of_type(large_index, centre, 20);
-
-	const std::vector<real_t> normal = { 1.0, 0.0, 0.0 };
-	auto* daughter = env.divide_cell(0, normal);
-
-	EXPECT_EQ(daughter->type_index(), large_index);
-	EXPECT_EQ(env.cells->get_agent_at(0)->type_index(), large_index);
 }
 
 } // namespace physicore::mechanics::micromechanics::tests

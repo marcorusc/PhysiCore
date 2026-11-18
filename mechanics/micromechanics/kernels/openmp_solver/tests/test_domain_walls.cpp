@@ -36,14 +36,6 @@ environment make_box(index_t dims, real_t timestep = 0.001, sindex_t half_size =
 			 timestep };
 }
 
-// Net force on every sub-agent, agents_count * dims values
-std::vector<real_t> forces_of(environment& env)
-{
-	force_solver forces;
-	forces.compute(env);
-	return { forces.forces().begin(), forces.forces().end() };
-}
-
 // Total potential energy with the walls of a box of the given half size
 real_t total_energy_with_walls(environment& env, real_t half_size)
 {
@@ -437,6 +429,24 @@ TEST(DomainWallTest, GrowingCellInACornerStaysInsideTheDomain)
 }
 
 // -------------------------------------------------------------------------------- reproducibility
+
+TEST(DomainWallTest, WallReachesHalfTheEquilibriumDistanceOfTheElementsType)
+{
+	environment env({ 3, { -10, -10, -10 }, { 10, 10, 10 }, { 1, 1, 1 } }, 0.001);
+	env.params.domain_walls = true;
+	const index_t large = env.add_cell_type(large_type());
+
+	// both 0.8 from the wall at x = -10: beyond the reach of the small element (0.5), within that of
+	// the large one (1.0)
+	add_point_cell(env, 0, -9.2);
+	add_point_cell(env, large, -9.2);
+	env.agents->get_agent_at(1)->position()[1] = 5.0; // far from the first
+
+	const auto forces = forces_of(env);
+	EXPECT_DOUBLE_EQ(forces[0], 0.0);
+	EXPECT_DOUBLE_EQ(forces[3], wall_force(wall_potential(env.cell_types[large], env.params), -9.2, -10.0, 10.0));
+	EXPECT_GT(forces[3], 0.0);
+}
 
 #ifdef _OPENMP
 TEST(DomainWallTest, RunWithWallsDoesNotDependOnTheNumberOfThreads)
