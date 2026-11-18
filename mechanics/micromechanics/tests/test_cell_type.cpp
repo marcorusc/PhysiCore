@@ -61,6 +61,7 @@ TEST(CellTypeTest, DefaultsAreUnitValuesWithTheInterCellularWellHalfAsDeep)
 	EXPECT_DOUBLE_EQ(type.intra_well_depth, 1.0);
 	EXPECT_DOUBLE_EQ(type.inter_well_depth, 0.5);
 	EXPECT_TRUE(type.adhesion_affinities.empty());
+	EXPECT_FALSE(type.is_motile);
 }
 
 TEST(CellTypeTest, AffinityWithoutAnEntryIsOne)
@@ -253,6 +254,27 @@ TEST(CellTypeEnvironmentTest, NewCellTakesTheTypeItIsCreatedWith)
 	EXPECT_EQ(env.create_cell(large_index)->type_index(), large_index);
 
 	EXPECT_THROW(env.create_cell(5), std::out_of_range);
+}
+
+TEST(CellTypeEnvironmentTest, NewCellTakesTheMotilityOfItsType)
+{
+	environment env = make_environment();
+	cell_type crawler;
+	crawler.is_motile = true;
+	crawler.migration_speed = 0.7;
+	crawler.persistence_time = 3.0;
+	crawler.migration_bias = 0.25;
+	const index_t crawler_index = env.add_cell_type(crawler);
+
+	auto* plain = env.create_cell();
+	auto* motile = env.create_cell(crawler_index);
+
+	EXPECT_EQ(plain->is_motile(), 0);
+
+	EXPECT_EQ(motile->is_motile(), 1);
+	EXPECT_DOUBLE_EQ(motile->migration_speed(), 0.7);
+	EXPECT_DOUBLE_EQ(motile->persistence_time(), 3.0);
+	EXPECT_DOUBLE_EQ(motile->migration_bias(), 0.25);
 }
 
 } // namespace physicore::mechanics::micromechanics::tests

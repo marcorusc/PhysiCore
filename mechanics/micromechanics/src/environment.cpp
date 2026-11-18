@@ -56,8 +56,14 @@ cell_interface* environment::create_cell(index_t type_index)
 	{
 		throw std::out_of_range("Invalid cell type index");
 	}
+	const cell_type& type = cell_types[type_index];
+
 	auto* new_cell = cells->create();
 	new_cell->type_index() = type_index;
+	new_cell->is_motile() = type.is_motile ? 1 : 0;
+	new_cell->migration_speed() = type.migration_speed;
+	new_cell->persistence_time() = type.persistence_time;
+	new_cell->migration_bias() = type.migration_bias;
 	return new_cell;
 }
 
@@ -287,6 +293,12 @@ cell_interface* environment::divide_cell(index_t cell_index, std::span<const rea
 	auto* parent = cells->get_agent_at(cell_index);
 
 	daughter->is_movable() = parent->is_movable();
+	daughter->is_motile() = parent->is_motile();
+	daughter->migration_speed() = parent->migration_speed();
+	daughter->migration_bias() = parent->migration_bias();
+	daughter->persistence_time() = parent->persistence_time();
+	std::ranges::copy(parent->migration_bias_direction(), daughter->migration_bias_direction().begin());
+	std::ranges::copy(parent->motility_direction(), daughter->motility_direction().begin());
 	std::ranges::copy(parent->velocity(), daughter->velocity().begin());
 
 	agent_data& agent_values = generic_agent_solver<agent>::retrieve_agent_data(*agents);

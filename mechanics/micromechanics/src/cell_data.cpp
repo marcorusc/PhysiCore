@@ -15,6 +15,13 @@ void cell_data::add()
 
 	type_indices.resize(cells_count, 0);
 	is_movable.resize(cells_count, 1);
+	is_motile.resize(cells_count, 0);
+
+	migration_speeds.resize(cells_count, 0.0);
+	migration_biases.resize(cells_count, 0.0);
+	migration_bias_directions.resize(cells_count * dims, 0.0);
+	persistence_times.resize(cells_count, 0.0);
+	motility_directions.resize(cells_count * dims, 0.0);
 
 	positions.resize(cells_count * dims, 0.0);
 	velocities.resize(cells_count * dims, 0.0);
@@ -36,6 +43,14 @@ void cell_data::remove_at(index_t position)
 	{
 		storage::move_scalar(&type_indices[position], &type_indices[last]);
 		storage::move_scalar(&is_movable[position], &is_movable[last]);
+		storage::move_scalar(&is_motile[position], &is_motile[last]);
+
+		storage::move_scalar(&migration_speeds[position], &migration_speeds[last]);
+		storage::move_scalar(&migration_biases[position], &migration_biases[last]);
+		storage::move_vector(&migration_bias_directions[position * dims], &migration_bias_directions[last * dims],
+							 dims);
+		storage::move_scalar(&persistence_times[position], &persistence_times[last]);
+		storage::move_vector(&motility_directions[position * dims], &motility_directions[last * dims], dims);
 
 		storage::move_vector(&positions[position * dims], &positions[last * dims], dims);
 		storage::move_vector(&velocities[position * dims], &velocities[last * dims], dims);
@@ -48,6 +63,13 @@ void cell_data::remove_at(index_t position)
 
 	type_indices.resize(cells_count);
 	is_movable.resize(cells_count);
+	is_motile.resize(cells_count);
+
+	migration_speeds.resize(cells_count);
+	migration_biases.resize(cells_count);
+	migration_bias_directions.resize(cells_count * dims);
+	persistence_times.resize(cells_count);
+	motility_directions.resize(cells_count * dims);
 
 	positions.resize(cells_count * dims);
 	velocities.resize(cells_count * dims);

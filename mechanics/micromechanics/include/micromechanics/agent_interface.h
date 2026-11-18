@@ -15,7 +15,7 @@ inline constexpr index_t no_cell = std::numeric_limits<index_t>::max();
  * @brief A mechanical sub-agent: one element of a sub-cellular element model cell.
  *
  * Several sub-agents together represent one biological cell. Properties shared by all
- * sub-agents of a cell (its type, ...) live on the cell, see cell_interface.
+ * sub-agents of a cell (motility, ...) live on the cell, see cell_interface.
  */
 class agent_interface : public virtual base_agent_interface
 {

@@ -1,5 +1,6 @@
 set(ALL_EXAMPLES
     growth_division
+    motility
     potential_curve
     scaled_cell
     thermal_noise

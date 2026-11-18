@@ -19,6 +19,13 @@ struct cell_data
 
 	std::vector<index_t> type_indices;
 	std::vector<std::uint8_t> is_movable;
+	std::vector<std::uint8_t> is_motile;
+
+	std::vector<real_t> migration_speeds;
+	std::vector<real_t> migration_biases;
+	std::vector<real_t> migration_bias_directions;
+	std::vector<real_t> persistence_times;
+	std::vector<real_t> motility_directions;
 
 	std::vector<real_t> positions;
 	std::vector<real_t> velocities;

@@ -40,7 +40,7 @@ public:
 	index_t add_cell_type(cell_type type);
 
 	// Creates a cell of the given type without sub-agents; its index is cells->size() - 1 until a
-	// cell is removed.
+	// cell is removed. The cell takes the motility of its type.
 	// @throws std::out_of_range if there is no such type
 	cell_interface* create_cell(index_t type_index = 0);
 

@@ -46,6 +46,9 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 	real_t* velocities = data.velocities.data();
 	const index_t* cell_indices = data.cell_indices.data();
 	const std::uint8_t* is_movable = cells.is_movable.data();
+	const std::uint8_t* is_motile = cells.is_motile.data();
+	const real_t* migration_speeds = cells.migration_speeds.data();
+	const real_t* motility_directions = cells.motility_directions.data();
 	const real_t* force = forces.data();
 
 #pragma omp parallel for if (agents_count >= parallel_threshold)
@@ -53,6 +56,7 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 	{
 		const index_t cell_index = cell_indices[i];
 		const bool movable = cell_index == no_cell || is_movable[cell_index] != 0;
+		const bool motile = cell_index != no_cell && is_motile[cell_index] != 0;
 		const index_t type = type_of_element(cell_index, type_indices, cells_count);
 		const real_t inverse_drag = inverse_drag_of_type[type];
 		const real_t noise_amplitude = noise_amplitude_of_type[type];
@@ -61,7 +65,10 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 		{
 			const index_t k = i * dims + d;
 
-			velocities[k] = movable ? force[k] * inverse_drag : 0.0;
+			const real_t crawling =
+				motile ? migration_speeds[cell_index] * motility_directions[cell_index * dims + d] : 0.0;
+
+			velocities[k] = movable ? force[k] * inverse_drag + crawling : 0.0;
 			positions[k] += velocities[k] * timestep;
 
 			if (noisy && movable)

@@ -53,6 +53,12 @@ struct cell_type
 	// Number of elements of a cell created without giving a number
 	index_t elements_per_cell = 1;
 
+	// Motility of a new cell of this type, see cell_interface
+	bool is_motile = false;
+	real_t migration_speed = 0.0;
+	real_t persistence_time = 0.0;
+	real_t migration_bias = 0.0;
+
 	// Affinity to type other_type, 1 if there is no entry for it
 	real_t affinity_to(index_t other_type) const
 	{
