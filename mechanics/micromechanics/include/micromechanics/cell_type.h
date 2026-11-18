@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 #include "pair_potential.h"
 #include "simulation_parameters.h"
@@ -139,7 +140,7 @@ inline real_t potential_energy(const pair_interaction& interaction, real_t squar
  * element, whatever the two affinity entries are, so action equals reaction. For two cells of the same
  * type the rule gives the inter-cellular well of that type, weighted by its affinity to itself.
  */
-class interaction_table
+class MICROMECHANICS_EXPORT interaction_table
 {
 	index_t types_count_ = 0;
 	std::vector<pair_interaction> intra_; // one per type

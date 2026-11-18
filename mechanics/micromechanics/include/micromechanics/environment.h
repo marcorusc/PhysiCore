@@ -9,6 +9,7 @@
 #include <common/mesh.h>
 #include <common/timestep_executor.h>
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 #include "agent_container.h"
 #include "cell_container.h"
@@ -26,9 +27,9 @@ namespace physicore::mechanics::micromechanics {
  * elements by moving the last one into the freed slot, so cells and sub-agents must be created and
  * removed through this class, which keeps the agent -> cell indices and the per-cell agent counts valid.
  */
-class environment : public timestep_executor,
-					private physicore::generic_agent_solver<agent>,
-					private physicore::generic_agent_solver<cell>
+class MICROMECHANICS_EXPORT environment : public timestep_executor,
+										  private physicore::generic_agent_solver<agent>,
+										  private physicore::generic_agent_solver<cell>
 {
 public:
 	environment(const cartesian_mesh& mesh, real_t timestep);

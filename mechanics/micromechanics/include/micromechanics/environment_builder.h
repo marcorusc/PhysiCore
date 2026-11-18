@@ -9,6 +9,7 @@
 
 #include <common/mesh.h>
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 #include "cell_type.h"
 #include "environment.h"
@@ -32,7 +33,8 @@ namespace physicore::mechanics::micromechanics {
  * elements of a cell oscillate with growing amplitude and the cell flies apart. Stay well below it:
  * the examples use a fifth of it or less.
  */
-real_t largest_stable_timestep(const cell_type& type, const simulation_parameters& params, index_t dims);
+MICROMECHANICS_EXPORT real_t largest_stable_timestep(const cell_type& type, const simulation_parameters& params,
+													 index_t dims);
 
 /**
  * @brief Puts an environment together step by step and checks it before it is used.
@@ -41,7 +43,7 @@ real_t largest_stable_timestep(const cell_type& type, const simulation_parameter
  * initialised. It refuses values that cannot work: no domain, a cell type with a value that makes no
  * sense, or a timestep beyond largest_stable_timestep() of any cell type.
  */
-class environment_builder
+class MICROMECHANICS_EXPORT environment_builder
 {
 	real_t timestep = 0.0;
 	std::optional<cartesian_mesh> mesh;

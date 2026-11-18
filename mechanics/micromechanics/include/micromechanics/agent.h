@@ -7,6 +7,7 @@
 #include <common/base_agent_data.h>
 #include <common/base_agent_generic_storage.h>
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 #include "agent_data.h"
 #include "agent_interface.h"
@@ -18,7 +19,8 @@ namespace physicore::mechanics::micromechanics {
 	#pragma warning(disable : 4250) // inherits via dominance (intentional design)
 #endif
 
-class agent : public physicore::base_agent_generic_storage<base_agent_data>, public virtual agent_interface
+class MICROMECHANICS_EXPORT agent : public physicore::base_agent_generic_storage<base_agent_data>,
+									public virtual agent_interface
 {
 protected:
 	agent_data& data;

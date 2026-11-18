@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 namespace physicore::mechanics::micromechanics {
 
@@ -14,7 +15,7 @@ class environment;
  * Backends own all hardware-specific work: neighbor search, force evaluation,
  * per-cell aggregation and position integration.
  */
-class solver
+class MICROMECHANICS_EXPORT solver
 {
 public:
 	solver() = default;
