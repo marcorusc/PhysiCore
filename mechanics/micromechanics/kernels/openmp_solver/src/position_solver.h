@@ -11,13 +11,18 @@ namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
 /**
  * @brief Position update of the overdamped Langevin equation (Euler-Maruyama scheme).
  *
- *     velocity = force / drag_coefficient
+ *     velocity = force / drag_coefficient + migration_speed * motility_direction
  *     position += velocity * timestep + sqrt(2 * thermal_energy / drag_coefficient * timestep) * xi
  *
  * with drag_coefficient that of the sub-agent's cell type, and
  * xi an independent standard normal number for every sub-agent, axis and step
  * (Sandersius and Newman 2008, Eq. 1 and 2). Without noise this is forward Euler. velocity is the
  * deterministic drift only; the noise has no finite velocity.
+ *
+ * The second term of the velocity is the motility. It is there only for sub-agents of a motile cell
+ * and is the same for all of them, so on its own it moves the cell without changing its shape. It is
+ * equivalent to a traction force drag_coefficient * migration_speed * motility_direction on every
+ * sub-agent. The direction is chosen by motility_solver.
  *
  * Sub-agents of a cell that is not movable keep their position and get zero velocity.
  */

@@ -24,6 +24,24 @@ index_t& cell::type_index() { return data.type_indices[this->index]; }
 
 std::uint8_t& cell::is_movable() { return data.is_movable[this->index]; }
 
+std::uint8_t& cell::is_motile() { return data.is_motile[this->index]; }
+
+real_t& cell::migration_speed() { return data.migration_speeds[this->index]; }
+
+real_t& cell::migration_bias() { return data.migration_biases[this->index]; }
+
+std::span<real_t> cell::migration_bias_direction()
+{
+	return { &data.migration_bias_directions[this->index * data.dims], static_cast<std::size_t>(data.dims) };
+}
+
+real_t& cell::persistence_time() { return data.persistence_times[this->index]; }
+
+std::span<real_t> cell::motility_direction()
+{
+	return { &data.motility_directions[this->index * data.dims], static_cast<std::size_t>(data.dims) };
+}
+
 std::span<real_t> cell::velocity()
 {
 	return { &data.velocities[this->index * data.dims], static_cast<std::size_t>(data.dims) };

@@ -50,7 +50,7 @@ struct cell_parameters
  *     inter_well_depth     = adhesion_ratio * intra_well_depth
  *
  * The steepness is taken from params, which must be the parameters the simulation runs with. The
- * relations are those of the paper and hold in three dimensions only. Name and affinities
+ * relations are those of the paper and hold in three dimensions only. Name, affinities and motility
  * of the returned type are left at their defaults.
  *
  * @throws std::invalid_argument if a value is not positive or the well depth would not be positive

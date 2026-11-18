@@ -15,6 +15,13 @@ public:
 	virtual index_t& type_index() = 0;
 
 	virtual std::uint8_t& is_movable() = 0;
+	virtual std::uint8_t& is_motile() = 0;
+
+	virtual real_t& migration_speed() = 0;
+	virtual real_t& migration_bias() = 0;
+	virtual std::span<real_t> migration_bias_direction() = 0;
+	virtual real_t& persistence_time() = 0;
+	virtual std::span<real_t> motility_direction() = 0;
 
 	virtual std::span<real_t> velocity() = 0;
 	virtual index_t agent_count() const = 0;

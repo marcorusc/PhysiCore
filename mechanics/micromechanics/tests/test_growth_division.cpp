@@ -497,4 +497,27 @@ TEST(DivisionTest, DaughterKeepsTheTypeOfTheParent)
 	EXPECT_EQ(env.cells->get_agent_at(0)->type_index(), large_index);
 }
 
+TEST(DivisionTest, DaughterInheritsTheMotilityOfTheParent)
+{
+	environment env = make_environment(3);
+	const std::array<real_t, 3> centre = { 0.0, 0.0, 0.0 };
+	auto* parent = env.create_cell(centre, 20);
+	parent->is_motile() = 1;
+	parent->migration_speed() = 2.5;
+	parent->migration_bias() = 0.25;
+	parent->persistence_time() = 4.0;
+	parent->migration_bias_direction()[2] = 1.0;
+	parent->motility_direction()[1] = 1.0;
+
+	const std::vector<real_t> normal = { 1.0, 0.0, 0.0 };
+	auto* daughter = env.divide_cell(0, normal);
+
+	EXPECT_EQ(daughter->is_motile(), 1);
+	EXPECT_DOUBLE_EQ(daughter->migration_speed(), 2.5);
+	EXPECT_DOUBLE_EQ(daughter->migration_bias(), 0.25);
+	EXPECT_DOUBLE_EQ(daughter->persistence_time(), 4.0);
+	EXPECT_DOUBLE_EQ(daughter->migration_bias_direction()[2], 1.0);
+	EXPECT_DOUBLE_EQ(daughter->motility_direction()[1], 1.0);
+}
+
 } // namespace physicore::mechanics::micromechanics::tests

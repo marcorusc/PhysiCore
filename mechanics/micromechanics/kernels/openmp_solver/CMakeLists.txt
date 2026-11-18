@@ -13,6 +13,7 @@ target_sources(
   mechanics.micromechanics.kernels.openmp_solver
   PRIVATE src/cell_solver.cpp
           src/force_solver.cpp
+          src/motility_solver.cpp
           src/neighbor_grid.cpp
           src/openmp_solver.cpp
           src/position_solver.cpp

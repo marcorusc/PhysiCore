@@ -24,6 +24,13 @@ public:
 
 	index_t& type_index() override;
 	std::uint8_t& is_movable() override;
+	std::uint8_t& is_motile() override;
+
+	real_t& migration_speed() override;
+	real_t& migration_bias() override;
+	std::span<real_t> migration_bias_direction() override;
+	real_t& persistence_time() override;
+	std::span<real_t> motility_direction() override;
 
 	std::span<real_t> velocity() override;
 	index_t agent_count() const override;
