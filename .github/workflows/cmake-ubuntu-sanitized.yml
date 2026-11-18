@@ -18,10 +18,10 @@ jobs:
       matrix:
         include:
           # ASAN, LSAN, UBSAN
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             workflow: llvm-debug
           # TSAN
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             workflow: llvm-relwithdebinfo
 
     steps:

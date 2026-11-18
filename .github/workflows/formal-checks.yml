@@ -9,7 +9,7 @@ permissions:
 jobs:
   checks:
     name: Formal Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -58,7 +58,7 @@ jobs:
       - name: Configure with CMake
         uses: ./.github/actions/setup-build-env
         with:
-          os: ubuntu-latest
+          os: ubuntu-24.04
           configure-preset: llvm-debug
 
       - name: Run clang-tidy analysis

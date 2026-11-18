@@ -77,7 +77,8 @@ public:
 
 	void remove_agent(base_agent_interface* agent) override
 	{
-		remove_at(generic_agent_interface_container<base_agent_interface>::get_agent_index(agent));
+		remove_at(
+			generic_agent_interface_container<typename MostConcreteAgentType::InterfaceType>::get_agent_index(agent));
 	}
 
 	void remove_at(index_t position) override
@@ -89,7 +90,9 @@ public:
 
 		(std::get<std::unique_ptr<typename AgentTypes::DataType>>(agent_datas)->remove_at(position), ...);
 
-		index_t& index = generic_agent_interface_container<base_agent_interface>::get_agent_index(agents.back().get());
+		index_t& index =
+			generic_agent_interface_container<typename MostConcreteAgentType::InterfaceType>::get_agent_index(
+				agents.back().get());
 		index = position;
 		std::swap(agents[position], agents.back());
 		agents.resize(this->size() - 1);

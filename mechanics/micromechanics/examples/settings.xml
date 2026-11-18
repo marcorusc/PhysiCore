@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<!--
+  A small sub-cellular element simulation: two cell types in a box with walls.
+
+  Only the fields read by the micromechanics module are filled in; see docs/Parameters.md. A complete
+  PhysiCell settings file works as well, as long as every cell definition has a <sub_cellular_elements>
+  block. Units here: micrometres, minutes and piconewtons.
+-->
+<PhysiCell_settings version="devel-version">
+
+    <domain>
+        <x_min>-40</x_min>
+        <x_max>40</x_max>
+        <y_min>-40</y_min>
+        <y_max>40</y_max>
+        <z_min>-20</z_min>
+        <z_max>20</z_max>
+        <dx>20</dx>
+        <dy>20</dy>
+        <dz>20</dz>
+        <use_2D>false</use_2D>
+    </domain>
+
+    <overall>
+        <max_time units="min">10</max_time>
+        <time_units>min</time_units>
+        <space_units>micron</space_units>
+        <dt_mechanics units="min">0.002</dt_mechanics>
+    </overall>
+
+    <options>
+        <virtual_wall_at_domain_edge>true</virtual_wall_at_domain_edge>
+    </options>
+
+    <!-- what all cell types share; the values below are the defaults -->
+    <micromechanics>
+        <steepness>2</steepness>
+        <cutoff_factor>2.5</cutoff_factor>
+        <thermal_energy>0</thermal_energy>
+        <random_seed>0</random_seed>
+    </micromechanics>
+
+    <cell_definitions>
+
+        <!-- a cell of radius 10 (volume 4189), 32 elements, described by its stiffness and damping -->
+        <cell_definition name="epithelial" ID="0">
+            <phenotype>
+                <volume>
+                    <total units="micron^3">4188.790205</total>
+                </volume>
+                <mechanics>
+                    <cell_adhesion_affinities>
+                        <cell_adhesion_affinity name="epithelial">1</cell_adhesion_affinity>
+                        <cell_adhesion_affinity name="fibroblast">0.2</cell_adhesion_affinity>
+                    </cell_adhesion_affinities>
+                    <sub_cellular_elements>
+                        <elements>32</elements>
+                        <stiffness units="pN/micron">5000</stiffness>
+                        <damping units="pN*min/micron">5000</damping>
+                        <adhesion_ratio units="dimensionless">0.5</adhesion_ratio>
+                    </sub_cellular_elements>
+                </mechanics>
+                <motility>
+                    <speed units="micron/min">1</speed>
+                    <persistence_time units="min">1</persistence_time>
+                    <migration_bias units="dimensionless">0</migration_bias>
+                    <options>
+                        <enabled>false</enabled>
+                    </options>
+                </motility>
+            </phenotype>
+        </cell_definition>
+
+        <!-- a smaller, softer, motile cell: radius 7 (volume 1437), 16 elements -->
+        <cell_definition name="fibroblast" ID="1">
+            <phenotype>
+                <volume>
+                    <total units="micron^3">1436.755040</total>
+                </volume>
+                <mechanics>
+                    <cell_adhesion_affinities>
+                        <cell_adhesion_affinity name="epithelial">0.2</cell_adhesion_affinity>
+                        <cell_adhesion_affinity name="fibroblast">1</cell_adhesion_affinity>
+                    </cell_adhesion_affinities>
+                    <sub_cellular_elements>
+                        <elements>16</elements>
+                        <stiffness units="pN/micron">2000</stiffness>
+                        <damping units="pN*min/micron">3000</damping>
+                    </sub_cellular_elements>
+                </mechanics>
+                <motility>
+                    <speed units="micron/min">2</speed>
+                    <persistence_time units="min">2</persistence_time>
+                    <migration_bias units="dimensionless">0</migration_bias>
+                    <options>
+                        <enabled>true</enabled>
+                    </options>
+                </motility>
+            </phenotype>
+        </cell_definition>
+
+    </cell_definitions>
+
+    <initial_conditions>
+        <cell_positions type="csv" enabled="true">
+            <folder>.</folder>
+            <filename>cells.csv</filename>
+        </cell_positions>
+    </initial_conditions>
+
+</PhysiCell_settings>

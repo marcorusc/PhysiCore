@@ -1,0 +1,9 @@
+x,y,z,type
+-11,-11,0,epithelial
+11,-11,0,epithelial
+-11,11,0,epithelial
+11,11,0,epithelial
+-26,0,0,fibroblast
+26,0,0,fibroblast
+0,-26,0,fibroblast
+0,26,0,fibroblast
