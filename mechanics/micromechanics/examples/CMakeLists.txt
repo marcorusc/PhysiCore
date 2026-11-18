@@ -1,4 +1,5 @@
 set(ALL_EXAMPLES
+    cell_sorting
     domain_walls
     growth_division
     motility
