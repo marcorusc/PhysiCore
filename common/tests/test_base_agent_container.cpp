@@ -1,3 +1,8 @@
+#include <memory>
+#include <span>
+#include <tuple>
+#include <vector>
+
 #include <gtest/gtest.h>
 
 #include "base_agent_container.h"
@@ -165,6 +170,91 @@ class mech_retriever : public generic_agent_solver<mechanics_agent>
 public:
 	using generic_agent_solver<mechanics_agent>::retrieve_agent_data;
 };
+
+// An agent that is not built on base_agent: it has its own data and its own interface, as a module
+// may need for objects that are not point agents of the shared kind.
+struct standalone_data
+{
+	std::vector<real_t> positions;
+	std::vector<real_t> values;
+
+	void add()
+	{
+		positions.resize(positions.size() + 3, 0.0);
+		values.push_back(0.0);
+	}
+
+	void remove_at(index_t position)
+	{
+		const index_t last = values.size() - 1;
+		if (position != last)
+		{
+			values[position] = values[last];
+			for (index_t d = 0; d < 3; ++d)
+			{
+				positions[3 * position + d] = positions[3 * last + d];
+			}
+		}
+		values.pop_back();
+		positions.resize(positions.size() - 3);
+	}
+};
+
+class standalone_interface : public virtual base_agent_interface
+{
+public:
+	virtual real_t& value() = 0;
+};
+
+class standalone_agent : public virtual standalone_interface
+{
+	standalone_data& data;
+
+public:
+	using DataType = standalone_data;
+	using InterfaceType = standalone_interface;
+
+	standalone_agent(index_t index, std::tuple<std::unique_ptr<standalone_data>>& datas)
+		: base_agent_interface(index), data(*std::get<0>(datas))
+	{}
+
+	std::span<real_t> position() override { return { &data.positions[3 * this->index], 3 }; }
+
+	real_t& value() override { return data.values[this->index]; }
+};
+
+TEST(BaseAgentContainerTest, ContainerOfAgentsNotBuiltOnBaseAgentRemovesAndKeepsIndicesValid)
+{
+	// The container hands out its agents through their own interface, here standalone_interface, and
+	// base_agent is not among its types. Removing an agent moves the last one into its place, for which
+	// the container must reach the index of an agent seen through that interface.
+	generic_agent_and_data_container<standalone_agent> container(std::make_unique<standalone_data>());
+
+	standalone_interface* first = container.create();
+	standalone_interface* second = container.create();
+	standalone_interface* third = container.create();
+	first->value() = 1.0;
+	second->value() = 2.0;
+	third->value() = 3.0;
+	third->position()[1] = 30.0;
+
+	container.remove_agent(second);
+
+	ASSERT_EQ(container.size(), 2U);
+	EXPECT_EQ(container.get_agent_at(0), first);
+	// the last agent took over the freed index, and its data moved with it
+	EXPECT_EQ(container.get_agent_at(1), third);
+	EXPECT_DOUBLE_EQ(container.get_agent_at(0)->value(), 1.0);
+	EXPECT_DOUBLE_EQ(container.get_agent_at(1)->value(), 3.0);
+	EXPECT_DOUBLE_EQ(container.get_agent_at(1)->position()[1], 30.0);
+
+	container.remove_at(0);
+
+	ASSERT_EQ(container.size(), 1U);
+	EXPECT_EQ(container.get_agent_at(0), third);
+	EXPECT_DOUBLE_EQ(third->value(), 3.0);
+	EXPECT_DOUBLE_EQ(third->position()[1], 30.0);
+}
 
 TEST(BaseAgentContainerTest, Instantiation)
 {

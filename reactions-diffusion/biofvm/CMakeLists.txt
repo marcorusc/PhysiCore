@@ -23,7 +23,7 @@ target_sources(
   PRIVATE src/microenvironment.cpp
           src/microenvironment_builder.cpp
           src/vtk_serializer.cpp
-          src/vtk_serializer_base.cpp
+          ${PROJECT_SOURCE_DIR}/common/src/vtk_serializer_base.cpp
           src/config_reader.cpp
           src/vtk_agents_serializer.cpp
           src/solver_registry.cpp
