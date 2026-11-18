@@ -3,6 +3,7 @@
 #include <numbers>
 
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 #include "cell_type.h"
 #include "simulation_parameters.h"
@@ -55,7 +56,7 @@ struct cell_parameters
  *
  * @throws std::invalid_argument if a value is not positive or the well depth would not be positive
  */
-cell_type scale_to_elements(const cell_parameters& cell, index_t elements_per_cell,
-							const simulation_parameters& params = {});
+MICROMECHANICS_EXPORT cell_type scale_to_elements(const cell_parameters& cell, index_t elements_per_cell,
+												  const simulation_parameters& params = {});
 
 } // namespace physicore::mechanics::micromechanics

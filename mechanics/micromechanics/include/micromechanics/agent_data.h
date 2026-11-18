@@ -4,6 +4,7 @@
 
 #include <common/base_agent_data.h>
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 namespace physicore::mechanics::micromechanics {
 
@@ -13,7 +14,7 @@ namespace physicore::mechanics::micromechanics {
  * Positions are owned by the shared base_agent_data; this struct only refers to it.
  * The owning container calls add()/remove_at() on the base data first, so both stay in sync.
  */
-struct agent_data
+struct MICROMECHANICS_EXPORT agent_data
 {
 	physicore::base_agent_data& base_data;
 

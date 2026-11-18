@@ -5,6 +5,7 @@
 
 #include <common/base_agent_interface.h>
 #include <common/types.h>
+#include <micromechanics/micromechanics_export.h>
 
 namespace physicore::mechanics::micromechanics {
 
@@ -17,7 +18,7 @@ inline constexpr index_t no_cell = std::numeric_limits<index_t>::max();
  * Several sub-agents together represent one biological cell. Properties shared by all
  * sub-agents of a cell (motility, ...) live on the cell, see cell_interface.
  */
-class agent_interface : public virtual base_agent_interface
+class MICROMECHANICS_EXPORT agent_interface : public virtual base_agent_interface
 {
 public:
 	/// Index of the owning cell in the cell container, or no_cell.

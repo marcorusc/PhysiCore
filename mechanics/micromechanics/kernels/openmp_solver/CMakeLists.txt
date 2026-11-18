@@ -45,3 +45,9 @@ target_link_libraries(mechanics.micromechanics
 if(PHYSICORE_BUILD_TESTS)
   add_subdirectory(tests)
 endif()
+
+install(
+  TARGETS mechanics.micromechanics.kernels.openmp_solver
+          mechanics.micromechanics.kernels.openmp_solver_internal_iface
+  EXPORT MicromechanicsTargets
+  FILE_SET HEADERS)

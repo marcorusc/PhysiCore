@@ -3,12 +3,13 @@
 #include <concepts>
 
 #include <common/registry.h>
+#include <micromechanics/micromechanics_export.h>
 
 #include "solver.h"
 
 namespace physicore::mechanics::micromechanics {
 
-class solver_registry : public physicore::factory_registry<solver>
+class MICROMECHANICS_EXPORT solver_registry : public physicore::factory_registry<solver>
 {
 public:
 	static solver_registry& instance();

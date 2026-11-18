@@ -3,12 +3,14 @@
 #include <memory>
 #include <tuple>
 
+#include <micromechanics/micromechanics_export.h>
+
 #include "cell_data.h"
 #include "cell_interface.h"
 
 namespace physicore::mechanics::micromechanics {
 
-class cell : public virtual cell_interface
+class MICROMECHANICS_EXPORT cell : public virtual cell_interface
 {
 protected:
 	cell_data& data;
