@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <vector>
 
 #include <common/generic_agent_solver.h>
@@ -42,6 +43,18 @@ public:
 	// cell is removed.
 	// @throws std::out_of_range if there is no such type
 	cell_interface* create_cell(index_t type_index = 0);
+
+	// Creates a cell of type 0 of elements_count sub-agents packed around centre without overlaps,
+	// one equilibrium distance of the type apart (see packed_ball_positions). centre holds one value
+	// per dimension.
+	cell_interface* create_cell(std::span<const real_t> centre, index_t elements_count);
+
+	// The same for a cell of the given type, with the number of sub-agents of that type
+	// (cell_type::elements_per_cell)
+	cell_interface* create_cell_of_type(index_t type_index, std::span<const real_t> centre);
+
+	// The same with a number of sub-agents of one's own choosing
+	cell_interface* create_cell_of_type(index_t type_index, std::span<const real_t> centre, index_t elements_count);
 
 	// Creates a sub-agent that belongs to the cell at cell_index
 	agent_interface* create_agent(index_t cell_index);

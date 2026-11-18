@@ -9,9 +9,13 @@ target_sources(
           src/agent_data.cpp
           src/cell.cpp
           src/cell_data.cpp
+          src/cell_parameters.cpp
+          src/cell_placement.cpp
           src/cell_type.cpp
           src/environment.cpp
           src/solver_registry.cpp
+          src/vtk_agents_serializer.cpp
+          ${PROJECT_SOURCE_DIR}/common/src/vtk_serializer_base.cpp
   PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include" FILES
          ${PUBLIC_INC})
 
@@ -22,6 +26,11 @@ target_sources(
             "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 target_link_libraries(mechanics.micromechanics_internal_iface INTERFACE common)
+
+find_package(VTK CONFIG REQUIRED)
+
+target_link_libraries(mechanics.micromechanics_internal_iface
+                      INTERFACE VTK::IOXML)
 
 add_library(mechanics.micromechanics_iface INTERFACE)
 target_include_directories(
