@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+#include <memory>
 #include <span>
 #include <vector>
 
@@ -34,6 +36,18 @@ public:
 	void run_single_timestep() override;
 
 	void serialize_state(real_t current_time) override;
+
+	/**
+	 * @brief Creates an environment from a PhysiCell settings file, ready to run.
+	 *
+	 * Reads the domain, the timestep, the cell types and, if the file names one, the positions of the
+	 * cells (one per line: x, y, z, type, the type being the ID or the name of a cell type). See
+	 * docs/Parameters.md of this module for the fields that are read. The solver is attached and
+	 * initialised.
+	 *
+	 * @throws std::runtime_error if the file cannot be read or what it describes cannot work
+	 */
+	static std::unique_ptr<environment> create_from_config(const std::filesystem::path& config_file);
 
 	// Adds a cell type and returns its index. There is always the type 0, which starts with the
 	// default values of cell_type and can be changed in place (cell_types[0]).

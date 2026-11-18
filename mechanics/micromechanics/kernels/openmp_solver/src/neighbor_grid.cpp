@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
 
@@ -48,13 +49,22 @@ void neighbor_grid::build(const real_t* positions, index_t agents_count, index_t
 			origin_[d] = std::numeric_limits<real_t>::max();
 			highest[d] = std::numeric_limits<real_t>::lowest();
 		}
+		bool finite = true;
 		for (index_t i = 0; i < agents_count; ++i)
 		{
 			for (index_t d = 0; d < dims; ++d)
 			{
+				finite = finite && std::isfinite(positions[i * dims + d]);
 				origin_[d] = std::min(origin_[d], positions[i * dims + d]);
 				highest[d] = std::max(highest[d], positions[i * dims + d]);
 			}
+		}
+		if (!finite)
+		{
+			// no grid can hold a sub-agent at infinity, and nothing that follows would mean anything
+			throw std::runtime_error("A sub-agent position is no longer a finite number. The simulation has "
+									 "blown up, most likely because the timestep is too large for the stiffness of "
+									 "the cells (see largest_stable_timestep).");
 		}
 	}
 

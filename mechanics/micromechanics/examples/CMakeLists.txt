@@ -5,6 +5,7 @@ set(ALL_EXAMPLES
     motility
     potential_curve
     pressure
+    run_settings
     scaled_cell
     thermal_noise
     two_cells)

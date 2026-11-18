@@ -12,7 +12,9 @@ target_sources(
           src/cell_parameters.cpp
           src/cell_placement.cpp
           src/cell_type.cpp
+          src/config_reader.cpp
           src/environment.cpp
+          src/environment_builder.cpp
           src/solver_registry.cpp
           src/vtk_agents_serializer.cpp
           ${PROJECT_SOURCE_DIR}/common/src/vtk_serializer_base.cpp
@@ -27,10 +29,11 @@ target_sources(
 
 target_link_libraries(mechanics.micromechanics_internal_iface INTERFACE common)
 
+find_package(pugixml CONFIG REQUIRED)
 find_package(VTK CONFIG REQUIRED)
 
 target_link_libraries(mechanics.micromechanics_internal_iface
-                      INTERFACE VTK::IOXML)
+                      INTERFACE pugixml::pugixml VTK::IOXML)
 
 add_library(mechanics.micromechanics_iface INTERFACE)
 target_include_directories(

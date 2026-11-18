@@ -33,6 +33,7 @@ class neighbor_grid
 
 public:
 	// positions holds agents_count * dims values; interaction_range must be positive
+	// @throws std::runtime_error if a position is not a finite number
 	void build(const real_t* positions, index_t agents_count, index_t dims, real_t interaction_range);
 
 	// Number of bins along each axis (1 for axes beyond dims)
