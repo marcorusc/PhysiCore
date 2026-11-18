@@ -1,8 +1,10 @@
 #include "force_solver.h"
 
 #include <array>
+#include <vector>
 
 #include <micromechanics/cell_type.h>
+#include <micromechanics/domain_wall.h>
 #include <micromechanics/pair_potential.h>
 
 #include "element_types.h"
@@ -92,6 +94,49 @@ void force_solver::compute(environment& e)
 			forces[i * dims + d] = net_force[d];
 		}
 	}
+
+	add_wall_forces(e);
+}
+
+void force_solver::add_wall_forces(environment& e)
+{
+	if (!e.params.domain_walls)
+	{
+		return;
+	}
+
+	const agent_data& data = generic_agent_solver<agent>::retrieve_agent_data(*e.agents);
+	const cell_data& cells = generic_agent_solver<cell>::retrieve_agent_data(*e.cells);
+	const index_t agents_count = data.agents_count;
+	const index_t dims = data.base_data.dims;
+	const cartesian_mesh& mesh = e.mesh;
+
+	// a wall is as hard as another cell of the element's own type
+	std::vector<pair_potential> walls;
+	walls.reserve(e.cell_types.size());
+	for (const cell_type& type : e.cell_types)
+	{
+		walls.push_back(wall_potential(type, e.params));
+	}
+
+	const real_t* positions = data.base_data.positions.data();
+	const index_t* cell_indices = data.cell_indices.data();
+	const index_t* type_indices = cells.type_indices.data();
+	const index_t cells_count = cells.cells_count;
+	const pair_potential* wall_of_type = walls.data();
+	real_t* forces = forces_.data();
+
+#pragma omp parallel for if (agents_count >= parallel_threshold)
+	for (index_t i = 0; i < agents_count; ++i)
+	{
+		const pair_potential& wall = wall_of_type[type_of_element(cell_indices[i], type_indices, cells_count)];
+		for (index_t d = 0; d < dims; ++d)
+		{
+			forces[i * dims + d] +=
+				wall_force(wall, positions[i * dims + d], static_cast<real_t>(mesh.bounding_box_mins.at(d)),
+						   static_cast<real_t>(mesh.bounding_box_maxs.at(d)));
+		}
+	}
 }
 
 void force_solver::compute_brute_force(environment& e)
@@ -125,6 +170,8 @@ void force_solver::compute_brute_force(environment& e)
 			forces[i * dims + d] = net_force[d];
 		}
 	}
+
+	add_wall_forces(e);
 }
 
 } // namespace physicore::mechanics::micromechanics::kernels::openmp_solver

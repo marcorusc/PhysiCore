@@ -84,6 +84,13 @@ inline pair_potential inter_potential(const cell_type& type, const simulation_pa
 			 .cutoff_distance = params.cutoff_factor * type.equilibrium_distance };
 }
 
+/// Potential between an element of this type and its mirror image behind a wall, see domain_wall.h:
+/// a wall is as hard as another cell of the same type
+inline pair_potential wall_potential(const cell_type& type, const simulation_parameters& params)
+{
+	return inter_potential(type, params);
+}
+
 /**
  * @brief A pair potential whose attractive side is weighted.
  *

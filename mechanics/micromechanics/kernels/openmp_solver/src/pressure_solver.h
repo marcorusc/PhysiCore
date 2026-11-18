@@ -28,8 +28,8 @@ namespace physicore::mechanics::micromechanics::kernels::openmp_solver {
  * dimensions, sqrt(3) / 2 * r_eq^2 in two and r_eq in one. For a cell made with scale_to_elements() and the default
  * packing density this is the volume of the sphere of the requested radius.
  *
- * Only forces from outside the cell count: from sub-agents of other cells and from sub-agents without a
- * cell. Forces inside the cell, the motility and the thermal noise do not. A cell
+ * Only forces from outside the cell count: from sub-agents of other cells, from sub-agents without a
+ * cell and from the walls of the domain. Forces inside the cell, the motility and the thermal noise do not. A cell
  * without sub-agents, a cell of one sub-agent (which sits on its own centre) and a cell without neighbours have zero
  * pressure. The value belongs to the positions at the time of the call; it is not an average over time.
  *
@@ -41,6 +41,9 @@ class pressure_solver : private generic_agent_solver<agent>, private generic_age
 	// contribution of every sub-agent to the virial of its cell
 	std::vector<real_t> virials_;
 	neighbor_grid grid_;
+
+	// Adds the walls of the domain to the virials, if they are on
+	void add_walls(environment& e);
 
 	void accumulate(environment& e);
 

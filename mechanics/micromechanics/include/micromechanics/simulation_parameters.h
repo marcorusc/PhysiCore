@@ -11,7 +11,7 @@ namespace physicore::mechanics::micromechanics {
  *
  * Everything that describes a kind of cell (size of its elements, how stiff they are, how strongly
  * cells stick to each other) is in cell_type. What is left here is the shape of the potential, which
- * all cell types share, and the thermal noise.
+ * all cell types share, the thermal noise and the walls of the domain.
  *
  * steepness defaults to the value used by Sandersius and Newman (2008) and SEM2 (Chattaraj et al.
  * 2023, Table I); cutoff_factor to the SEM2 value.
@@ -33,6 +33,10 @@ struct simulation_parameters
 
 	// Seed of the noise. The same seed gives the same simulation, bit for bit.
 	std::uint64_t random_seed = 0;
+
+	// Walls at the faces of the domain (the bounding box of the mesh) that push elements back in, see
+	// domain_wall.h. Off by default: elements then move freely and the size of the domain plays no role.
+	bool domain_walls = false;
 };
 
 } // namespace physicore::mechanics::micromechanics

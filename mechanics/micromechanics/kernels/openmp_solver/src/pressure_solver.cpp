@@ -4,6 +4,7 @@
 #include <numbers>
 
 #include <micromechanics/cell_type.h>
+#include <micromechanics/domain_wall.h>
 #include <micromechanics/pair_potential.h>
 
 #include "element_types.h"
@@ -101,6 +102,7 @@ void pressure_solver::update(environment& e)
 		virials[i] = virial;
 	}
 
+	add_walls(e);
 	accumulate(e);
 }
 
@@ -137,7 +139,39 @@ void pressure_solver::update_brute_force(environment& e)
 		}
 	}
 
+	add_walls(e);
 	accumulate(e);
+}
+
+void pressure_solver::add_walls(environment& e)
+{
+	if (!e.params.domain_walls)
+	{
+		return;
+	}
+
+	const agent_data& agents = generic_agent_solver<agent>::retrieve_agent_data(*e.agents);
+	const cell_data& cells = generic_agent_solver<cell>::retrieve_agent_data(*e.cells);
+
+	const index_t dims = agents.base_data.dims;
+	const cartesian_mesh& mesh = e.mesh;
+
+	for (index_t i = 0; i < agents.agents_count; ++i)
+	{
+		const index_t c = agents.cell_indices[i];
+		if (c >= cells.cells_count)
+		{
+			continue;
+		}
+		const pair_potential wall = wall_potential(e.cell_types[cells.type_indices[c]], e.params);
+		for (index_t d = 0; d < dims; ++d)
+		{
+			const real_t position = agents.base_data.positions[i * dims + d];
+			virials_[i] += (position - cells.positions[c * dims + d])
+						   * wall_force(wall, position, static_cast<real_t>(mesh.bounding_box_mins.at(d)),
+										static_cast<real_t>(mesh.bounding_box_maxs.at(d)));
+		}
+	}
 }
 
 void pressure_solver::accumulate(environment& e)

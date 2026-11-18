@@ -1,5 +1,6 @@
 #include "position_solver.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
@@ -51,7 +52,11 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 	const real_t* motility_directions = cells.motility_directions.data();
 	const real_t* force = forces.data();
 
-#pragma omp parallel for if (agents_count >= parallel_threshold)
+	const bool walls = e.params.domain_walls;
+	const cartesian_mesh& mesh = e.mesh;
+	index_t stops = 0;
+
+#pragma omp parallel for reduction(+ : stops) if (agents_count >= parallel_threshold)
 	for (index_t i = 0; i < agents_count; ++i)
 	{
 		const index_t cell_index = cell_indices[i];
@@ -75,9 +80,21 @@ void position_solver::update(environment& e, std::span<const real_t> forces)
 			{
 				positions[k] += noise_amplitude * standard_normal(seed, step, i, d);
 			}
+
+			if (walls && movable)
+			{
+				const real_t inside = std::clamp(positions[k], static_cast<real_t>(mesh.bounding_box_mins.at(d)),
+												 static_cast<real_t>(mesh.bounding_box_maxs.at(d)));
+				if (inside != positions[k])
+				{
+					positions[k] = inside;
+					++stops;
+				}
+			}
 		}
 	}
 
+	wall_stops_ += stops;
 	++step_;
 }
 

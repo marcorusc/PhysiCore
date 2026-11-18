@@ -211,6 +211,14 @@ agent_interface* environment::grow_cell(index_t cell_index)
 					positions[anchor * dims + d] + equilibrium_distance * direction.at(d) / std::sqrt(squared_length);
 			}
 
+			// in a domain with walls a candidate beyond a wall is moved onto it; how much room it has
+			// there is judged like for any other candidate
+			for (index_t d = 0; d < dims && params.domain_walls; ++d)
+			{
+				position.at(d) = std::clamp(position.at(d), static_cast<real_t>(mesh.bounding_box_mins.at(d)),
+											static_cast<real_t>(mesh.bounding_box_maxs.at(d)));
+			}
+
 			// room: squared distance to the nearest sub-agent of any cell
 			real_t room = std::numeric_limits<real_t>::max();
 			for (index_t i = 0; i < agent_values.agents_count; ++i)
